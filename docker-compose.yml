@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # ----------------------------
+  # 1. Discovery Server (Eureka)
+  # ----------------------------
+  discovery-server:
+    container_name: discovery-server
+    build: ./discovery-server
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8761
+      # Kendini bir istemci gibi kaydetmesini engelliyoruz:
+      - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false,"serviceUrl":{"defaultZone":"http://localhost:8761/eureka/"}}}}
+
+  # ----------------------------
+  # 2. API Gateway
+  # ----------------------------
+  api-gateway:
+    container_name: api-gateway
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      discovery-server:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8080
+      - SPRING_APPLICATION_NAME=api-gateway
+      # Discovery Server'ın adresini localhost değil, konteyner ismi olarak veriyoruz:
+      - SPRING_APPLICATION_JSON={"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+
+  # ----------------------------
+  # 3. Payment Service (Ana Uygulama)
+  # ----------------------------
+  payment-service:
+    container_name: payment-service
+    build: ./paymentService
+    restart: on-failure
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=payment-service
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      # Discovery Server'a erişim ayarı:
+      - SPRING_APPLICATION_JSON={"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+
+  # ----------------------------
+  # 4. MySQL Veritabanı
+  # ----------------------------
+  mysqldb:
+    image: mysql:8.0
+    container_name: payment-mysql
+    restart: always
+    environment:
+      - MYSQL_DATABASE=payment_db
+      - MYSQL_ROOT_PASSWORD=1
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # ----------------------------
+  # 5. RabbitMQ
+  # ----------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: payment-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
