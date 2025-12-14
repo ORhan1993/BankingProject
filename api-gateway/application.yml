@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Servisleri otomatik bulmayı açar
+          lower-case-service-id: true
+      routes:
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE  # Eureka'daki isme git
+          predicates:
+            - Path=/api/payment/** # /api/payment ile başlayanları yakala
+          filters:
+            - RewritePath=/api/payment/(?<segment>.*), /$\{segment} # /api/payment kısmını silip ilet
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/

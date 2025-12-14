@@ -1,0 +1,17 @@
+/* frontend/src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Opsiyonel: Temel font ve gövde ayarları */
+body {
+    font-family: 'Inter', sans-serif; /* Profesyonel ve okunaklı bir font önerisi */
+    @apply text-gray-800 bg-bank-light;
+}
+
+/* Modüler bileşenler için genel stiller (Örn: Tüm kartlar) */
+@layer components {
+    .panel-card {
+        @apply bg-white p-6 rounded-xl shadow-panel transition-shadow hover:shadow-lg;
+    }
+}
