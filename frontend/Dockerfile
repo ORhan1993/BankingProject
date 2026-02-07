@@ -1,11 +1,11 @@
-# 1. Aşama: Build
-FROM node:18-alpine as build
+# 1. Aşama: Build (Node sürümü 18'den 22'ye yükseltildi)
+FROM node:22-alpine as build
 WORKDIR /app
 
-# Sadece package.json'ı kopyalıyoruz (lock dosyasını yoksayıyoruz)
+# Sadece package.json'ı kopyalıyoruz
 COPY package.json ./
 
-# Bağımlılıkları sıfırdan yüklüyoruz
+# Bağımlılıkları yüklüyoruz
 RUN npm install
 
 # Kaynak kodları kopyalıyoruz

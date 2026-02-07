@@ -9,6 +9,10 @@ RUN mvn clean package -DskipTests
 # --- Aşama 2: Run ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+
+# Sağlık kontrolü için curl kurulumu
+RUN apk add --no-cache curl
+
 # DİKKAT: Jar ismi pom.xml'deki artifactId ve version ile aynı olmalı
 COPY --from=build /app/target/discovery-server-0.0.1-SNAPSHOT.jar app.jar
 
