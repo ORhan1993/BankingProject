@@ -1,6 +1,3 @@
-// Dosya: vite.config.js
-// Dizin: frontend/vite.config.js
-
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -8,7 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: true, // Docker içinde dışarıdan erişim için gerekli
     port: 5173,
-    open: true // Proje başlayınca tarayıcıyı otomatik açar
+    strictPort: true,
+    watch: {
+      usePolling: true
+    }
   }
 })

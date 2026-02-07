@@ -17,7 +17,6 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8761
-      # Discovery Server kendi kendini register etmemeli:
       - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false}}}
 
   # ----------------------------
@@ -30,13 +29,16 @@ services:
       - "8080:8080"
     depends_on:
       discovery-server:
-        condition: service_started
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
       - SPRING_APPLICATION_NAME=api-gateway
-      # application.yml'daki ${EUREKA_URI} değişkenini burada tanımlıyoruz:
       - EUREKA_URI=http://discovery-server:8761/eureka/
+      # CORS Ayarları
+      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[0]_ALLOWEDORIGINS=*
+      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[0]_ALLOWEDMETHODS=GET,POST,PUT,DELETE,OPTIONS
+      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[0]_ALLOWEDHEADERS=*
 
   # ----------------------------
   # 3. Payment Service (Ana Uygulama)
@@ -51,7 +53,7 @@ services:
       rabbitmq:
         condition: service_healthy
       discovery-server:
-        condition: service_started
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=payment-service
@@ -59,7 +61,6 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=1
       - SPRING_RABBITMQ_HOST=rabbitmq
-      # application.yml'daki ${EUREKA_URI} değişkenini burada tanımlıyoruz:
       - EUREKA_URI=http://discovery-server:8761/eureka/
 
   # ----------------------------
@@ -95,6 +96,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ----------------------------
+  # 6. Frontend (React)
+  # ----------------------------
+  frontend:
+    container_name: banking-frontend
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+    restart: always # Konteyner kapanırsa otomatik yeniden başlat
 
 volumes:
   db_data:
