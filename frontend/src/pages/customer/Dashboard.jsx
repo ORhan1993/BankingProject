@@ -4,99 +4,137 @@ import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const [wallets, setWallets] = useState([]);
+    const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const userEmail = localStorage.getItem('userEmail');
 
     useEffect(() => {
-        fetchWallets();
-    }, []);
+        if (userEmail) {
+            fetchUserData();
+        } else {
+            navigate('/login');
+        }
+    }, [userEmail]);
 
-    const fetchWallets = async () => {
+    const fetchUserData = async () => {
         try {
-            // Gerçek bir endpoint olmadığı için şimdilik mock data veya user bilgisi ile simüle edebiliriz.
-            // Ancak backend'de "get wallets by user" gibi bir endpoint olması lazım.
-            // Şimdilik sadece bir placeholder gösterelim veya create wallet butonu koyalım.
-            setLoading(false);
+            const walletResponse = await api.get(`/wallets?customerId=${userEmail}`);
+            setWallets(walletResponse.data);
+
+            const txResponse = await api.get(`/payments/transactions?customerId=${userEmail}`);
+            setTransactions(txResponse.data.content || []);
         } catch (error) {
-            console.error("Error fetching wallets:", error);
+            console.error("Veri hatası:", error);
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userEmail');
-        navigate('/login');
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'COMPLETED': return <span className="status-badge status-completed">Tamamlandı</span>;
+            case 'FAILED': return <span className="status-badge status-failed">Başarısız</span>;
+            default: return <span className="status-badge status-pending">Bekliyor</span>;
+        }
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <h2>Hoşgeldin, {userEmail}</h2>
-                <button onClick={handleLogout} style={styles.logoutButton}>Çıkış Yap</button>
+        <div className="page-content">
+            <div className="dashboard-header">
+                <div>
+                    <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '5px' }}>
+                        Hoşgeldin, {userEmail?.split('@')[0]} 👋
+                    </h1>
+                    <p style={{ color: 'var(--text-light)' }}>Finansal durumunuzun özeti burada.</p>
+                </div>
+                <button onClick={() => navigate('/create-wallet')} className="btn btn-primary" style={{ width: 'auto' }}>
+                    + Yeni Cüzdan
+                </button>
             </div>
-            
-            <div style={styles.content}>
-                <h3>Cüzdanlarım</h3>
-                <button onClick={() => navigate('/create-wallet')} style={styles.actionButton}>+ Yeni Cüzdan Oluştur</button>
-                <button onClick={() => navigate('/deposit')} style={styles.actionButton}>Para Yatır</button>
-                <button onClick={() => navigate('/withdraw')} style={styles.actionButton}>Para Çek</button>
-                <button onClick={() => navigate('/transfer')} style={styles.actionButton}>Transfer Yap</button>
-                
-                {loading ? (
-                    <p>Yükleniyor...</p>
-                ) : (
-                    <div style={styles.walletList}>
-                        <p>Henüz cüzdanınız yok veya listeleme endpoint'i hazır değil.</p>
+
+            {loading ? (
+                <p>Yükleniyor...</p>
+            ) : (
+                <>
+                    {/* Bakiye Kartları */}
+                    <div className="balance-grid">
+                        {wallets.length > 0 ? (
+                            wallets.map((wallet) => (
+                                wallet.balances.map((b, index) => (
+                                    <div key={`${wallet.walletId}-${index}`} className="balance-card">
+                                        <div style={{ opacity: 0.8, fontSize: '14px' }}>Toplam Bakiye</div>
+                                        <div className="balance-amount">
+                                            {b.balance} <span style={{ fontSize: '1.5rem' }}>{b.currency}</span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '10px' }}>
+                                            Cüzdan ID: #{wallet.walletId}
+                                        </div>
+                                    </div>
+                                ))
+                            ))
+                        ) : (
+                            <div className="card" style={{ textAlign: 'center', gridColumn: '1 / -1' }}>
+                                <p>Henüz cüzdanınız yok.</p>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+
+                    {/* Hızlı İşlemler */}
+                    <h3 style={{ marginBottom: '15px' }}>Hızlı İşlemler</h3>
+                    <div className="action-grid">
+                        <div className="action-card" onClick={() => navigate('/deposit')}>
+                            <div style={{ fontSize: '24px', marginBottom: '10px' }}>💰</div>
+                            Para Yatır
+                        </div>
+                        <div className="action-card" onClick={() => navigate('/withdraw')}>
+                            <div style={{ fontSize: '24px', marginBottom: '10px' }}>💸</div>
+                            Para Çek
+                        </div>
+                        <div className="action-card" onClick={() => navigate('/transfer')}>
+                            <div style={{ fontSize: '24px', marginBottom: '10px' }}>🔄</div>
+                            Transfer Yap
+                        </div>
+                    </div>
+
+                    {/* İşlem Geçmişi */}
+                    <h3 style={{ marginBottom: '15px', marginTop: '40px' }}>Son İşlemler</h3>
+                    <div className="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>İşlem Tipi</th>
+                                    <th>Tutar</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transactions.length > 0 ? (
+                                    transactions.map((tx) => (
+                                        <tr key={tx.id}>
+                                            <td>{new Date(tx.transactionDate).toLocaleDateString()} {new Date(tx.transactionDate).toLocaleTimeString()}</td>
+                                            <td style={{ fontWeight: '500' }}>{tx.transactionType}</td>
+                                            <td className={tx.transactionType === 'DEPOSIT' ? 'text-success' : 'text-danger'}>
+                                                {tx.transactionType === 'DEPOSIT' ? '+' : '-'} {tx.originalAmount} {tx.originalCurrency}
+                                            </td>
+                                            <td>{getStatusBadge(tx.status)}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-light)' }}>
+                                            Henüz işlem kaydı bulunmuyor.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
         </div>
     );
-};
-
-const styles = {
-    container: {
-        padding: '20px',
-        fontFamily: 'Arial, sans-serif'
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: '1px solid #ccc',
-        paddingBottom: '10px',
-        marginBottom: '20px'
-    },
-    logoutButton: {
-        padding: '8px 16px',
-        backgroundColor: '#dc3545',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer'
-    },
-    content: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '15px'
-    },
-    actionButton: {
-        padding: '10px',
-        backgroundColor: '#17a2b8',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        maxWidth: '200px'
-    },
-    walletList: {
-        marginTop: '20px',
-        padding: '10px',
-        border: '1px solid #eee',
-        borderRadius: '4px'
-    }
 };
 
 export default Dashboard;

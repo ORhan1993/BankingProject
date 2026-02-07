@@ -16,125 +16,90 @@ const Transfer = () => {
         e.preventDefault();
         setMessage("Transfer yapılıyor...");
 
-        const requestData = {
-            idempotencyKey: uuidv4(),
-            fromCustomerId: userEmail,
-            toCustomerId: toEmail,
-            amount: parseFloat(amount),
-            currency: currency,
-            targetCurrency: targetCurrency,
-            description: "Web Transfer"
-        };
-
         try {
-            await api.post('/payments/transfer', requestData);
+            await api.post('/payments/transfer', {
+                idempotencyKey: uuidv4(),
+                fromCustomerId: userEmail,
+                toCustomerId: toEmail,
+                amount: parseFloat(amount),
+                currency: currency,
+                targetCurrency: targetCurrency,
+                description: "Web Transfer"
+            });
             setMessage("✅ Transfer başarılı!");
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 1500);
+            setTimeout(() => navigate('/dashboard'), 1500);
         } catch (error) {
-            console.error("Transfer Error:", error);
-            setMessage("❌ Hata oluştu: " + (error.response?.data?.message || error.message));
+            setMessage("❌ Hata: " + (error.response?.data?.message || error.message));
         }
     };
 
     return (
-        <div style={styles.container}>
-            <h3>Para Transferi</h3>
-            <form onSubmit={handleSubmit} style={styles.form}>
-                <label>Alıcı E-posta:</label>
-                <input
-                    type="email"
-                    value={toEmail}
-                    onChange={(e) => setToEmail(e.target.value)}
-                    required
-                    style={styles.input}
-                />
+        <div className="form-container">
+            <h3 style={{ textAlign: 'center', marginBottom: '20px' }}>Para Transferi</h3>
+            <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label className="form-label">Alıcı E-posta</label>
+                    <input
+                        type="email"
+                        className="form-input"
+                        value={toEmail}
+                        onChange={(e) => setToEmail(e.target.value)}
+                        required
+                    />
+                </div>
 
-                <label>Miktar:</label>
-                <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    min="0.01"
-                    step="0.01"
-                    required
-                    style={styles.input}
-                />
+                <div className="form-group">
+                    <label className="form-label">Miktar</label>
+                    <input
+                        type="number"
+                        className="form-input"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        min="0.01"
+                        step="0.01"
+                        required
+                    />
+                </div>
 
-                <label>Gönderilen Para Birimi:</label>
-                <select 
-                    value={currency} 
-                    onChange={(e) => setCurrency(e.target.value)}
-                    style={styles.input}
-                >
-                    <option value="TRY">TRY</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                </select>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">Gönderen Para Birimi</label>
+                        <select 
+                            className="form-input"
+                            value={currency} 
+                            onChange={(e) => setCurrency(e.target.value)}
+                        >
+                            <option value="TRY">TRY</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">Alıcı Para Birimi</label>
+                        <select 
+                            className="form-input"
+                            value={targetCurrency} 
+                            onChange={(e) => setTargetCurrency(e.target.value)}
+                        >
+                            <option value="TRY">TRY</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
 
-                <label>Alıcı Para Birimi:</label>
-                <select 
-                    value={targetCurrency} 
-                    onChange={(e) => setTargetCurrency(e.target.value)}
-                    style={styles.input}
-                >
-                    <option value="TRY">TRY</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                </select>
-
-                <button type="submit" style={styles.button}>Transfer Et</button>
-                <button type="button" onClick={() => navigate('/dashboard')} style={styles.cancelButton}>İptal</button>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                    <button type="button" onClick={() => navigate('/dashboard')} className="btn btn-secondary">
+                        İptal
+                    </button>
+                    <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#f59e0b', border: 'none' }}>
+                        Transfer Et
+                    </button>
+                </div>
             </form>
-            {message && <p style={styles.message}>{message}</p>}
+            {message && <p style={{ textAlign: 'center', marginTop: '15px' }}>{message}</p>}
         </div>
     );
-};
-
-const styles = {
-    container: {
-        border: '1px solid #ddd',
-        padding: '20px',
-        borderRadius: '8px',
-        maxWidth: '400px',
-        margin: '20px auto',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-    },
-    input: {
-        padding: '10px',
-        fontSize: '16px',
-        border: '1px solid #ccc',
-        borderRadius: '4px'
-    },
-    button: {
-        padding: '10px',
-        backgroundColor: '#ffc107',
-        color: 'black',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '16px'
-    },
-    cancelButton: {
-        padding: '10px',
-        backgroundColor: '#6c757d',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '16px'
-    },
-    message: {
-        marginTop: '15px',
-        fontWeight: 'bold',
-        textAlign: 'center'
-    }
 };
 
 export default Transfer;

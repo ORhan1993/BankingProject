@@ -3,10 +3,7 @@ import api from '../../api/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
 
@@ -20,84 +17,81 @@ const Login = () => {
 
         try {
             const response = await api.post('/auth/login', formData);
-            const token = response.data.token;
-            
-            localStorage.setItem('token', token);
+            localStorage.setItem('token', response.data.token);
             localStorage.setItem('userEmail', formData.email);
-            
-            setMessage("✅ Giriş Başarılı!");
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 1000);
+            navigate('/dashboard');
         } catch (error) {
-            console.error("Login Error:", error);
             setMessage("❌ Giriş Başarısız! Bilgilerinizi kontrol edin.");
         }
     };
 
     return (
-        <div style={styles.container}>
-            <h3>Giriş Yap</h3>
-            <form onSubmit={handleSubmit} style={styles.form}>
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="E-posta"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    style={styles.input}
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Şifre"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    style={styles.input}
-                />
-                <button type="submit" style={styles.button}>Giriş Yap</button>
+        <div className="form-container">
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <h2 style={{ color: 'var(--primary)', fontSize: '2rem', marginBottom: '10px' }}>NeoBank</h2>
+                <p style={{ color: 'var(--text-light)' }}>Hesabınıza giriş yapın</p>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label className="form-label">E-posta Adresi</label>
+                    <input
+                        type="email"
+                        name="email"
+                        className="form-input"
+                        placeholder="ornek@email.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Şifre</label>
+                    <input
+                        type="password"
+                        name="password"
+                        className="form-input"
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
+                    Giriş Yap
+                </button>
             </form>
-            {message && <p style={styles.message}>{message}</p>}
+
+            <div style={{ marginTop: '25px', textAlign: 'center', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                <p style={{ fontSize: '14px', color: 'var(--text-light)', marginBottom: '15px' }}>
+                    Henüz bir hesabınız yok mu?
+                </p>
+                <button 
+                    onClick={() => navigate('/register')} 
+                    className="btn btn-secondary"
+                    style={{ fontWeight: '600' }}
+                >
+                    Kayıt Ol
+                </button>
+            </div>
+
+            {message && (
+                <div style={{ 
+                    marginTop: '20px', 
+                    padding: '10px', 
+                    borderRadius: '8px', 
+                    backgroundColor: message.includes('❌') ? '#fee2e2' : '#d1fae5',
+                    color: message.includes('❌') ? '#991b1b' : '#065f46',
+                    textAlign: 'center',
+                    fontSize: '14px'
+                }}>
+                    {message}
+                </div>
+            )}
         </div>
     );
-};
-
-const styles = {
-    container: {
-        border: '1px solid #ddd',
-        padding: '20px',
-        borderRadius: '8px',
-        maxWidth: '400px',
-        margin: '20px auto',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-    },
-    input: {
-        padding: '10px',
-        fontSize: '16px',
-        border: '1px solid #ccc',
-        borderRadius: '4px'
-    },
-    button: {
-        padding: '10px',
-        backgroundColor: '#28a745',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '16px'
-    },
-    message: {
-        marginTop: '15px',
-        fontWeight: 'bold',
-        textAlign: 'center'
-    }
 };
 
 export default Login;

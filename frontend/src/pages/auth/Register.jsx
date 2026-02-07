@@ -3,11 +3,7 @@ import api from '../../api/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: ''
-    });
+    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
 
@@ -20,91 +16,87 @@ const Register = () => {
         setMessage("Kayıt olunuyor...");
 
         try {
-            // Backend'de /auth/register endpoint'i UserCreateRequest bekliyor
             await api.post('/auth/register', formData);
-            
-            setMessage("✅ Kayıt Başarılı! Giriş sayfasına yönlendiriliyorsunuz...");
-            setTimeout(() => {
-                navigate('/login');
-            }, 1500);
+            setMessage("✅ Kayıt Başarılı! Yönlendiriliyorsunuz...");
+            setTimeout(() => navigate('/login'), 1500);
         } catch (error) {
-            console.error("Register Error:", error);
             setMessage("❌ Kayıt Başarısız! Lütfen tekrar deneyin.");
         }
     };
 
     return (
-        <div style={styles.container}>
-            <h3>Kayıt Ol</h3>
-            <form onSubmit={handleSubmit} style={styles.form}>
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Ad Soyad"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    style={styles.input}
-                />
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="E-posta"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    style={styles.input}
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Şifre"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    style={styles.input}
-                />
-                <button type="submit" style={styles.button}>Kayıt Ol</button>
+        <div className="form-container">
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <h2 style={{ color: 'var(--primary)', fontSize: '2rem', marginBottom: '10px' }}>Kayıt Ol</h2>
+                <p style={{ color: 'var(--text-light)' }}>NeoBank ailesine katılın</p>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label className="form-label">Ad Soyad</label>
+                    <input
+                        type="text"
+                        name="name"
+                        className="form-input"
+                        placeholder="Adınız Soyadınız"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">E-posta</label>
+                    <input
+                        type="email"
+                        name="email"
+                        className="form-input"
+                        placeholder="ornek@email.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Şifre</label>
+                    <input
+                        type="password"
+                        name="password"
+                        className="form-input"
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
+                    Hesap Oluştur
+                </button>
             </form>
-            {message && <p style={styles.message}>{message}</p>}
+
+            <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                <button onClick={() => navigate('/login')} className="btn btn-secondary">
+                    Giriş Yap
+                </button>
+            </div>
+
+            {message && (
+                <div style={{ 
+                    marginTop: '20px', 
+                    padding: '10px', 
+                    borderRadius: '8px', 
+                    backgroundColor: message.includes('❌') ? '#fee2e2' : '#d1fae5',
+                    color: message.includes('❌') ? '#991b1b' : '#065f46',
+                    textAlign: 'center',
+                    fontSize: '14px'
+                }}>
+                    {message}
+                </div>
+            )}
         </div>
     );
-};
-
-const styles = {
-    container: {
-        border: '1px solid #ddd',
-        padding: '20px',
-        borderRadius: '8px',
-        maxWidth: '400px',
-        margin: '20px auto',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-    },
-    input: {
-        padding: '10px',
-        fontSize: '16px',
-        border: '1px solid #ccc',
-        borderRadius: '4px'
-    },
-    button: {
-        padding: '10px',
-        backgroundColor: '#007bff',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '16px'
-    },
-    message: {
-        marginTop: '15px',
-        fontWeight: 'bold',
-        textAlign: 'center'
-    }
 };
 
 export default Register;
