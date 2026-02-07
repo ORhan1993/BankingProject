@@ -17,8 +17,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8761
-      # Kendini bir istemci gibi kaydetmesini engelliyoruz:
-      - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false,"serviceUrl":{"defaultZone":"http://localhost:8761/eureka/"}}}}
+      # Discovery Server kendi kendini register etmemeli:
+      - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false}}}
 
   # ----------------------------
   # 2. API Gateway
@@ -35,8 +35,8 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
       - SPRING_APPLICATION_NAME=api-gateway
-      # Discovery Server'ın adresini localhost değil, konteyner ismi olarak veriyoruz:
-      - SPRING_APPLICATION_JSON={"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      # application.yml'daki ${EUREKA_URI} değişkenini burada tanımlıyoruz:
+      - EUREKA_URI=http://discovery-server:8761/eureka/
 
   # ----------------------------
   # 3. Payment Service (Ana Uygulama)
@@ -59,8 +59,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=1
       - SPRING_RABBITMQ_HOST=rabbitmq
-      # Discovery Server'a erişim ayarı:
-      - SPRING_APPLICATION_JSON={"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      # application.yml'daki ${EUREKA_URI} değişkenini burada tanımlıyoruz:
+      - EUREKA_URI=http://discovery-server:8761/eureka/
 
   # ----------------------------
   # 4. MySQL Veritabanı

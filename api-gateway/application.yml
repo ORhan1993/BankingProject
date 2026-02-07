@@ -18,7 +18,21 @@ spring:
           filters:
             - RewritePath=/api/payment/(?<segment>.*), /$\{segment} # /api/payment kısmını silip ilet
 
+globalcors:
+  cors-configurations:
+    '[/**]':
+      allowedOrigins:
+        - "http://localhost:5173"  # Frontend'in adresi
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowedHeaders: "*"
+      allowCredentials: true
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-server:8761/eureka/
+      # EUREKA_URI tanımlıysa onu kullan (Docker), yoksa localhost'u kullan.
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
