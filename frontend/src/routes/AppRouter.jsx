@@ -8,24 +8,23 @@ import ProtectedRoute from './ProtectedRoute';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 
-import Login from '../pages/Auth/Login';
-import NotFound from '../pages/Auth/NotFound';
+import Login from '../pages/auth/Login';
+import NotFound from '../pages/auth/NotFound';
 
-import CustomerDashboard from '../pages/Customer/Dashboard';
-import Accounts from '../pages/Customer/Accounts';
-import Transfer from '../pages/Customer/Transfer';
-import LoanApply from '../pages/Customer/LoanApply';
+import CustomerDashboard from '../pages/customer/Dashboard';
+import Accounts from '../pages/customer/Accounts';
+import Transfer from '../pages/customer/Transfer';
+import LoanApply from '../pages/customer/LoanApply';
 
-import AdminDashboard from '../pages/Admin/Dashboard';
-import UsersPage from '../pages/Admin/Users';
-import Logs from '../pages/Admin/Logs';
+import AdminDashboard from '../pages/admin/Dashboard';
+import UsersPage from '../pages/admin/Users';
+import Logs from '../pages/admin/Logs';
 
 import ManagerDashboard from '../pages/Manager/Dashboard';
 import Approvals from '../pages/Manager/Approvals';
 
 import EmployeeDashboard from '../pages/Employee/Dashboard';
 
-// DÜZELTME: Artık doğrudan pages klasöründen çekiyoruz
 import SettingsPage from '../pages/Settings';
 
 // --- LAYOUT BİLEŞENLERİ ---

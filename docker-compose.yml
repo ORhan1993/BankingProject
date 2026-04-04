@@ -35,8 +35,8 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
       - SPRING_APPLICATION_NAME=api-gateway
-      # Discovery Server'ın adresini localhost değil, konteyner ismi olarak veriyoruz:
-      - SPRING_APPLICATION_JSON={"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      # Sunucu IP adresi (192.168.1.137) ile Eureka'ya kaydolması için:
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"192.168.1.137","preferIpAddress":true,"ip-address":"192.168.1.137"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
   # 3. Payment Service (Ana Uygulama)
@@ -45,6 +45,8 @@ services:
     container_name: payment-service
     build: ./paymentService
     restart: on-failure
+    ports:
+      - "8081:8081"
     depends_on:
       mysqldb:
         condition: service_healthy
@@ -55,12 +57,13 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=payment-service
+      - SERVER_PORT=8081
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=1
       - SPRING_RABBITMQ_HOST=rabbitmq
-      # Discovery Server'a erişim ayarı:
-      - SPRING_APPLICATION_JSON={"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      # Sunucu IP adresi (192.168.1.137) ile Eureka'ya kaydolması için:
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"192.168.1.137","preferIpAddress":true,"ip-address":"192.168.1.137"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
   # 4. MySQL Veritabanı
@@ -95,6 +98,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ----------------------------
+  # 6. Frontend (React/Vite)
+  # ----------------------------
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - "5173:5173" # Vite'nin varsayılan geliştirme portu
+    depends_on:
+      - api-gateway
 
 volumes:
   db_data:
