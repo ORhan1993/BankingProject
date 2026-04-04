@@ -6,8 +6,6 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 @Entity
 @Table(name = "users")
 @Data
@@ -28,12 +26,13 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    // Bu alan, servis katmanında hash'lenerek doldurulur.
-    // API yanıtlarında gösterilmemelidir, bu yüzden DTO kullanımı önemlidir.
     @Column(name = "password", nullable = false)
     private String password;
 
+    // Yeni Eklenen Alan: Kullanıcı Rolü
+    @Column(name = "role", nullable = false)
+    private String role;
 
-     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-     private List<Wallet> wallets = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Wallet> wallets = new ArrayList<>();
 }

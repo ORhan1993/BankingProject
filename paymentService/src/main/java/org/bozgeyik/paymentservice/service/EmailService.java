@@ -3,9 +3,10 @@ package org.bozgeyik.paymentservice.service;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async; // Asenkron çalışması için
+import org.springframework.scheduling.annotation.Async; 
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,9 +16,9 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    // Bu metodu @Async yaparak, uygulamanın ana akışını (thread)
-    // bloklamamasını sağlıyoruz. E-posta gönderme işlemi
-    // arka planda ayrı bir thread'de çalışır.
+    @Value("${app.mail.sender}")
+    private String senderEmail; // application.properties'ten info@neobank.com.tr alacak
+
     @Async
     public void sendHtmlEmail(String to, String subject, String htmlBody) {
         log.info("E-posta gönderme işlemi başlatılıyor: {} -> {}", to, subject);
@@ -28,7 +29,7 @@ public class EmailService {
             helper.setText(htmlBody, true); // true = HTML
             helper.setTo(to);
             helper.setSubject(subject);
-            // helper.setFrom("no-reply@bozgeyik.com"); // properties'ten de ayarlanabilir
+            helper.setFrom(senderEmail); // Resmi e-posta adresi ayarlandı
 
             mailSender.send(mimeMessage);
             log.info("E-posta başarıyla gönderildi: {}", to);
@@ -37,9 +38,3 @@ public class EmailService {
         }
     }
 }
-
-// Not: Bu @Async özelliğini aktif etmek için Ana Uygulama sınıfınıza
-// (PaymentServiceApplication.java) @EnableAsync eklemeniz gerekir.
-// @SpringBootApplication
-// @EnableAsync  <-- BU ANOTASYONU EKLEYİN
-// public class PaymentServiceApplication { ... }

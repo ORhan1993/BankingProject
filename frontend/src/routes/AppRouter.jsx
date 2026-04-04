@@ -9,6 +9,8 @@ import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 
 import Login from '../pages/auth/Login';
+import RegisterCustomer from '../pages/auth/RegisterCustomer';
+import RegisterAdmin from '../pages/auth/RegisterAdmin';
 import NotFound from '../pages/auth/NotFound';
 
 import CustomerDashboard from '../pages/customer/Dashboard';
@@ -106,6 +108,8 @@ const AppRouter = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/register/customer" element={<RegisterCustomer />} />
+                <Route path="/register/admin" element={<RegisterAdmin />} />
                 <Route path="/" element={isAuthenticated ? <Navigate to={`/${role?.toLowerCase()}/dashboard`} replace /> : <Navigate to="/login" replace />} />
 
                 <Route path="/customer" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><CustomerLayout /></ProtectedRoute>}>

@@ -35,8 +35,8 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
       - SPRING_APPLICATION_NAME=api-gateway
-      # Sunucu IP adresi (192.168.1.137) ile Eureka'ya kaydolması için:
-      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"192.168.1.137","preferIpAddress":true,"ip-address":"192.168.1.137"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      # Tailscale Sunucu IP adresi ile Eureka'ya kaydolması için:
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"100.108.175.65","preferIpAddress":true,"ip-address":"100.108.175.65"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
   # 3. Payment Service (Ana Uygulama)
@@ -62,8 +62,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=1
       - SPRING_RABBITMQ_HOST=rabbitmq
-      # Sunucu IP adresi (192.168.1.137) ile Eureka'ya kaydolması için:
-      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"192.168.1.137","preferIpAddress":true,"ip-address":"192.168.1.137"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      # Tailscale Sunucu IP adresi ile Eureka'ya kaydolması için:
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"100.108.175.65","preferIpAddress":true,"ip-address":"100.108.175.65"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
   # 4. MySQL Veritabanı
@@ -109,6 +109,16 @@ services:
       - "5173:5173" # Vite'nin varsayılan geliştirme portu
     depends_on:
       - api-gateway
+
+  # ----------------------------
+  # 7. Local Mail Server (MailHog)
+  # ----------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025" # Backend'in mail göndereceği SMTP portu
+      - "8025:8025" # Gelen mailleri görebileceğiniz Web Arayüzü portu
 
 volumes:
   db_data:

@@ -1,17 +1,14 @@
 package org.bozgeyik.paymentservice.dto;
 
-// Getter, Setter, vb. için Lombok kullanılabilir veya manuel eklenebilir.
+import lombok.Data;
+
+@Data
 public class UserCreateRequest {
 
     private String name;
     private String email;
     private String password;
-
-    // Getters and Setters
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    
+    // Hangi rol ile kayıt olacağını belirten alan. Örn: "CUSTOMER" veya "ADMIN"
+    private String role; 
 }

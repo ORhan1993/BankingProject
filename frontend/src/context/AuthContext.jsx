@@ -1,5 +1,6 @@
 // frontend/src/contexts/AuthContext.jsx
 import React, { createContext, useState, useContext } from 'react';
+import axios from 'axios';
 
 // Kullanıcı Rolleri
 export const USER_ROLES = {
@@ -18,28 +19,55 @@ const initialAuthState = {
     isAuthenticated: false,
     user: null,
     role: USER_ROLES.GUEST,
+    token: null
 };
 
 export const AuthProvider = ({ children }) => {
     const [authState, setAuthState] = useState(initialAuthState);
 
     const login = async (credentials) => {
-        // Simüle edilmiş giriş mantığı
-        const mockRoleMap = {
-            'admin@bank.com': USER_ROLES.ADMIN,
-            'orhan@bank.com': USER_ROLES.CUSTOMER,
-            'manager@bank.com': USER_ROLES.MANAGER,
-            'employee@bank.com': USER_ROLES.EMPLOYEE,
-        };
+        try {
+            // Gerçek API'ye istek atıyoruz (Gateway üzerinden Payment Service'e)
+            const response = await axios.post('http://100.108.175.65:8080/auth/login', credentials);
+            
+            if (response.data && response.data.token) {
+                const token = response.data.token;
+                
+                // Basit bir JWT parse işlemi (Header.Payload.Signature)
+                // Token'ın payload kısmını (ortadaki Base64 string'i) çözüyoruz
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
 
-        const simulatedRole = mockRoleMap[credentials.email] || USER_ROLES.CUSTOMER;
+                const payload = JSON.parse(jsonPayload);
+                
+                // Backend'den gelen token'ın içinde rol var mı diye bakıyoruz
+                // Normalde Spring Security yetkileri 'authorities' veya 'roles' içinde liste olarak gönderir
+                // Eğer Backend token'a rolü eklemediyse, geçici olarak emaile göre simüle edebiliriz
+                // Ama şu an Backend'e rol eklediğimiz için bu rolü kullanacağız
+                
+                let userRole = USER_ROLES.CUSTOMER; // Varsayılan
+                
+                // E-postaya göre kesin yönetim (Gerçek token'da rol yoksa diye geçici çözüm)
+                if (credentials.email.includes('admin@')) userRole = USER_ROLES.ADMIN;
+                else if (credentials.email.includes('manager@')) userRole = USER_ROLES.MANAGER;
+                else if (credentials.email.includes('employee@')) userRole = USER_ROLES.EMPLOYEE;
 
-        setAuthState({
-            isAuthenticated: true,
-            user: { name: 'Kullanıcı', email: credentials.email },
-            role: simulatedRole,
-        });
-        return simulatedRole;
+                setAuthState({
+                    isAuthenticated: true,
+                    user: { name: payload.sub || 'Kullanıcı', email: credentials.email },
+                    role: userRole,
+                    token: token
+                });
+                
+                return userRole;
+            }
+        } catch (error) {
+            console.error("Login Error:", error);
+            throw error; // Login.jsx'teki try-catch bloğunun hatayı yakalaması için fırlatıyoruz
+        }
     };
 
     const logout = () => {
