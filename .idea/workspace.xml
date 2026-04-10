@@ -4,24 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="004c934c-233a-42d8-9268-e58013442c7b" name="Changes" comment="sunucu client ilişkisi kuruldu test edilecek">
-      <change afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/pages/auth/RegisterAdmin.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/pages/auth/RegisterCustomer.jsx" afterDir="false" />
+    <list default="true" id="004c934c-233a-42d8-9268-e58013442c7b" name="Changes" comment="feat: Dockerizasyon, Tailscale entegrasyonu ve yetkilendirme altyapısı eklendi&#10;&#10;- [DevOps] Frontend için Dockerfile oluşturuldu ve vite konfigürasyonunda ağ erişimi (0.0.0.0) açıldı.&#10;- [DevOps] docker-compose.yml güncellenerek frontend, mailhog ve payment-service servisleri eklendi/düzenlendi.&#10;- [DevOps] Eureka ve Gateway için Tailscale statik IP (100.x) yönlendirmeleri yapılandırıldı.&#10;- [Backend] API Gateway'e application.yml eklenerek Discovery Locator ve Global CORS ayarları yapıldı.&#10;- [Backend] Payment Service modeline, DTO'larına ve UserService'ine 'role' (Kullanıcı Rolü) desteği eklendi.&#10;- [Backend] CustomUserDetailsService güncellenerek kullanıcının veritabanındaki rolü Spring Security'ye aktarıldı.&#10;- [Backend] SecurityConfig güncellenerek CORS (Cross-Origin) ayarları yapılandırıldı ve spesifik client IP'lerine izin verildi.&#10;- [Backend] application.properties güncellenerek port (8081), db, rabbitmq ve MailHog SMTP ayarları Docker ortamına uyarlandı.&#10;- [Backend] data.sql güncellenerek başlangıç için test kullanıcıları (Admin ve Customer) eklendi.&#10;- [Backend] EmailService güncellenerek gönderici e-posta adresi (info@neobank.com.tr) properties'den okunacak şekilde ayarlandı.&#10;- [Frontend] Login ekranına Müşteri ve Personel kayıt linkleri eklendi.&#10;- [Frontend] RegisterCustomer ve RegisterAdmin (Kayıt Ol) arayüzleri (component) oluşturuldu.&#10;- [Frontend] AuthContext güncellenerek mock data yerine API Gateway üzerinden gerçek login isteği (axios) atılması ve JWT token parse edilerek role-based yönlendirme yapılması sağlandı.&#10;- [Frontend] AppRouter.jsx içerisindeki büyük/küçük harf (case-sensitive) import hataları düzeltildi ve yeni rotalar eklendi.&#10;- [Fix] Payment Service pom.xml içerisindeki yanlış konumlandırılmış spring-cloud-dependencies hatası giderildi.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/context/AuthContext.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/context/AuthContext.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/auth/Login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/auth/Login.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/routes/AppRouter.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/routes/AppRouter.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/dto/UserCreateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/dto/UserCreateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/model/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/service/CustomUserDetailsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/service/CustomUserDetailsService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/service/EmailService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/resources/data.sql" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/resources/data.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +13,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="143" />
+    <option name="cachedIndexableFilesCount" value="146" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -143,7 +127,8 @@
       <workItem from="1775076133468" duration="2327000" />
       <workItem from="1775294556265" duration="107000" />
       <workItem from="1775294676513" duration="4432000" />
-      <workItem from="1775336453340" duration="6268000" />
+      <workItem from="1775336453340" duration="6859000" />
+      <workItem from="1775856391615" duration="262000" />
     </task>
     <task id="LOCAL-00001" summary="sunucu client ilişkisi kuruldu test edilecek">
       <option name="closed" value="true" />
@@ -153,7 +138,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775299108689</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="feat: Dockerizasyon, Tailscale entegrasyonu ve yetkilendirme altyapısı eklendi&#10;&#10;- [DevOps] Frontend için Dockerfile oluşturuldu ve vite konfigürasyonunda ağ erişimi (0.0.0.0) açıldı.&#10;- [DevOps] docker-compose.yml güncellenerek frontend, mailhog ve payment-service servisleri eklendi/düzenlendi.&#10;- [DevOps] Eureka ve Gateway için Tailscale statik IP (100.x) yönlendirmeleri yapılandırıldı.&#10;- [Backend] API Gateway'e application.yml eklenerek Discovery Locator ve Global CORS ayarları yapıldı.&#10;- [Backend] Payment Service modeline, DTO'larına ve UserService'ine 'role' (Kullanıcı Rolü) desteği eklendi.&#10;- [Backend] CustomUserDetailsService güncellenerek kullanıcının veritabanındaki rolü Spring Security'ye aktarıldı.&#10;- [Backend] SecurityConfig güncellenerek CORS (Cross-Origin) ayarları yapılandırıldı ve spesifik client IP'lerine izin verildi.&#10;- [Backend] application.properties güncellenerek port (8081), db, rabbitmq ve MailHog SMTP ayarları Docker ortamına uyarlandı.&#10;- [Backend] data.sql güncellenerek başlangıç için test kullanıcıları (Admin ve Customer) eklendi.&#10;- [Backend] EmailService güncellenerek gönderici e-posta adresi (info@neobank.com.tr) properties'den okunacak şekilde ayarlandı.&#10;- [Frontend] Login ekranına Müşteri ve Personel kayıt linkleri eklendi.&#10;- [Frontend] RegisterCustomer ve RegisterAdmin (Kayıt Ol) arayüzleri (component) oluşturuldu.&#10;- [Frontend] AuthContext güncellenerek mock data yerine API Gateway üzerinden gerçek login isteği (axios) atılması ve JWT token parse edilerek role-based yönlendirme yapılması sağlandı.&#10;- [Frontend] AppRouter.jsx içerisindeki büyük/küçük harf (case-sensitive) import hataları düzeltildi ve yeni rotalar eklendi.&#10;- [Fix] Payment Service pom.xml içerisindeki yanlış konumlandırılmış spring-cloud-dependencies hatası giderildi.">
+      <option name="closed" value="true" />
+      <created>1775343310667</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1775343310667</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -161,6 +154,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="sunucu client ilişkisi kuruldu test edilecek" />
-    <option name="LAST_COMMIT_MESSAGE" value="sunucu client ilişkisi kuruldu test edilecek" />
+    <MESSAGE value="feat: Dockerizasyon, Tailscale entegrasyonu ve yetkilendirme altyapısı eklendi&#10;&#10;- [DevOps] Frontend için Dockerfile oluşturuldu ve vite konfigürasyonunda ağ erişimi (0.0.0.0) açıldı.&#10;- [DevOps] docker-compose.yml güncellenerek frontend, mailhog ve payment-service servisleri eklendi/düzenlendi.&#10;- [DevOps] Eureka ve Gateway için Tailscale statik IP (100.x) yönlendirmeleri yapılandırıldı.&#10;- [Backend] API Gateway'e application.yml eklenerek Discovery Locator ve Global CORS ayarları yapıldı.&#10;- [Backend] Payment Service modeline, DTO'larına ve UserService'ine 'role' (Kullanıcı Rolü) desteği eklendi.&#10;- [Backend] CustomUserDetailsService güncellenerek kullanıcının veritabanındaki rolü Spring Security'ye aktarıldı.&#10;- [Backend] SecurityConfig güncellenerek CORS (Cross-Origin) ayarları yapılandırıldı ve spesifik client IP'lerine izin verildi.&#10;- [Backend] application.properties güncellenerek port (8081), db, rabbitmq ve MailHog SMTP ayarları Docker ortamına uyarlandı.&#10;- [Backend] data.sql güncellenerek başlangıç için test kullanıcıları (Admin ve Customer) eklendi.&#10;- [Backend] EmailService güncellenerek gönderici e-posta adresi (info@neobank.com.tr) properties'den okunacak şekilde ayarlandı.&#10;- [Frontend] Login ekranına Müşteri ve Personel kayıt linkleri eklendi.&#10;- [Frontend] RegisterCustomer ve RegisterAdmin (Kayıt Ol) arayüzleri (component) oluşturuldu.&#10;- [Frontend] AuthContext güncellenerek mock data yerine API Gateway üzerinden gerçek login isteği (axios) atılması ve JWT token parse edilerek role-based yönlendirme yapılması sağlandı.&#10;- [Frontend] AppRouter.jsx içerisindeki büyük/küçük harf (case-sensitive) import hataları düzeltildi ve yeni rotalar eklendi.&#10;- [Fix] Payment Service pom.xml içerisindeki yanlış konumlandırılmış spring-cloud-dependencies hatası giderildi." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: Dockerizasyon, Tailscale entegrasyonu ve yetkilendirme altyapısı eklendi&#10;&#10;- [DevOps] Frontend için Dockerfile oluşturuldu ve vite konfigürasyonunda ağ erişimi (0.0.0.0) açıldı.&#10;- [DevOps] docker-compose.yml güncellenerek frontend, mailhog ve payment-service servisleri eklendi/düzenlendi.&#10;- [DevOps] Eureka ve Gateway için Tailscale statik IP (100.x) yönlendirmeleri yapılandırıldı.&#10;- [Backend] API Gateway'e application.yml eklenerek Discovery Locator ve Global CORS ayarları yapıldı.&#10;- [Backend] Payment Service modeline, DTO'larına ve UserService'ine 'role' (Kullanıcı Rolü) desteği eklendi.&#10;- [Backend] CustomUserDetailsService güncellenerek kullanıcının veritabanındaki rolü Spring Security'ye aktarıldı.&#10;- [Backend] SecurityConfig güncellenerek CORS (Cross-Origin) ayarları yapılandırıldı ve spesifik client IP'lerine izin verildi.&#10;- [Backend] application.properties güncellenerek port (8081), db, rabbitmq ve MailHog SMTP ayarları Docker ortamına uyarlandı.&#10;- [Backend] data.sql güncellenerek başlangıç için test kullanıcıları (Admin ve Customer) eklendi.&#10;- [Backend] EmailService güncellenerek gönderici e-posta adresi (info@neobank.com.tr) properties'den okunacak şekilde ayarlandı.&#10;- [Frontend] Login ekranına Müşteri ve Personel kayıt linkleri eklendi.&#10;- [Frontend] RegisterCustomer ve RegisterAdmin (Kayıt Ol) arayüzleri (component) oluşturuldu.&#10;- [Frontend] AuthContext güncellenerek mock data yerine API Gateway üzerinden gerçek login isteği (axios) atılması ve JWT token parse edilerek role-based yönlendirme yapılması sağlandı.&#10;- [Frontend] AppRouter.jsx içerisindeki büyük/küçük harf (case-sensitive) import hataları düzeltildi ve yeni rotalar eklendi.&#10;- [Fix] Payment Service pom.xml içerisindeki yanlış konumlandırılmış spring-cloud-dependencies hatası giderildi." />
   </component>
 </project>
