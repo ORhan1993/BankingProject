@@ -1,7 +1,7 @@
 // frontend/src/routes/AppRouter.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, Activity, CreditCard, Send, ShieldAlert, Briefcase, Settings as SettingsIcon, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Users, Activity, CreditCard, Send, ShieldAlert, Briefcase, Settings as SettingsIcon, TrendingUp, Mail } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
@@ -21,6 +21,7 @@ import LoanApply from '../pages/customer/LoanApply';
 import AdminDashboard from '../pages/admin/Dashboard';
 import UsersPage from '../pages/admin/Users';
 import Logs from '../pages/admin/Logs';
+import LocalMailbox from '../pages/admin/LocalMailbox'; // Yeni eklendi
 
 import ManagerDashboard from '../pages/Manager/Dashboard';
 import Approvals from '../pages/Manager/Approvals';
@@ -54,6 +55,7 @@ const AdminLayout = () => {
     const menuItems = [
         { path: 'dashboard', name: 'Yönetim Paneli', icon: <LayoutDashboard size={20}/> },
         { path: 'users', name: 'Kullanıcı Yönetimi', icon: <Users size={20}/> },
+        { path: 'mailbox', name: 'Sistem Mailleri', icon: <Mail size={20}/> }, // Yeni eklendi
         { path: 'logs', name: 'Sistem Logları', icon: <Activity size={20}/> },
         { path: 'settings', name: 'Ayarlar', icon: <SettingsIcon size={20}/> },
     ];
@@ -124,6 +126,7 @@ const AppRouter = () => {
                 <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN', 'GENERAL_MANAGER']}><AdminLayout /></ProtectedRoute>}>
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="users" element={<UsersPage />} />
+                    <Route path="mailbox" element={<LocalMailbox />} /> {/* Yeni Eklendi */}
                     <Route path="logs" element={<Logs />} />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route index element={<Navigate to="dashboard" replace />} />

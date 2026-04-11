@@ -13,95 +13,148 @@ const RegisterCustomer = () => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [successMsg, setSuccessMsg] = useState(null); 
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setSuccessMsg(null);
         
         try {
-            // API Gateway üzerinden Backend'e istek atıyoruz
-            const response = await axios.post('http://100.108.175.65:8080/auth/register', formData);
+            // CORS hatasını aşmak ve Headers'ı net belirtmek için yapılandırma ekliyoruz
+            const response = await axios.post('http://100.108.175.65:8080/auth/register', formData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
             
             if (response.data && response.data.token) {
-                alert("Müşteri hesabı başarıyla oluşturuldu! Lütfen giriş yapın.");
-                navigate('/login');
+                setSuccessMsg("Müşteri hesabı başarıyla oluşturuldu! Lütfen kayıtlı e-postanız ile giriş yapın.");
+                
+                setFormData({
+                    name: '',
+                    email: '',
+                    password: '',
+                    role: 'CUSTOMER'
+                });
+                
+                setTimeout(() => {
+                    navigate('/login');
+                }, 3000);
             }
         } catch (err) {
             console.error("Kayıt hatası:", err);
-            setError(err.response?.data?.message || "Kayıt işlemi sırasında bir hata oluştu.");
+            // Sunucudan mesaj dönmezse veya ağ hatası olursa daha net bir mesaj göster
+            const errorMsg = err.response?.data?.message || err.response?.data || err.message || "Kayıt işlemi sırasında bir hata oluştu.";
+            setError(typeof errorMsg === 'string' ? errorMsg : "Sunucu ile iletişim kurulamadı. (CORS veya Ağ Hatası)");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-            <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-                <div className="mb-8">
-                    <Link to="/login" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors mb-6">
-                        <ArrowLeft size={16} className="mr-1" /> Geri Dön
+        <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">
+            <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+                <div className="mb-8 text-center relative">
+                    <Link to="/login" className="absolute left-0 top-1 inline-flex items-center text-sm font-medium text-gray-400 hover:text-blue-600 transition-colors">
+                        <ArrowLeft size={18} />
                     </Link>
-                    <h2 className="text-2xl font-bold text-gray-800">Müşteri Olun</h2>
-                    <p className="text-gray-500 mt-2 text-sm">Hemen hesap açın ve avantajlardan yararlanın.</p>
+                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <User size={24} />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Müşteri Olun</h2>
+                    <p className="text-gray-500 mt-2 text-sm">Hemen hesap açın ve dijital bankacılığın ayrıcalıklarından yararlanın.</p>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded">
+                    <div className="mb-6 p-4 bg-red-50/50 border border-red-100 text-red-600 text-sm rounded-xl flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0"></div>
                         {error}
+                    </div>
+                )}
+                
+                {successMsg && (
+                    <div className="mb-6 p-4 bg-green-50/50 border border-green-100 text-green-700 text-sm font-medium rounded-xl flex flex-col items-center justify-center text-center gap-2">
+                        <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                            <ArrowRight size={20} />
+                        </div>
+                        {successMsg}
+                        <span className="text-xs text-green-600/70 mt-1 animate-pulse">Giriş sayfasına yönlendiriliyorsunuz...</span>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 ml-1">Ad Soyad / Unvan</label>
-                        <div className="relative">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <label className="text-sm font-semibold text-gray-700 ml-1">Ad Soyad / Unvan</label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <User className="text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                            </div>
                             <input
                                 type="text"
                                 value={formData.name}
                                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all font-medium"
                                 placeholder="Ahmet Yılmaz"
                                 required
+                                disabled={successMsg !== null}
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 ml-1">E-posta Adresi</label>
-                        <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <label className="text-sm font-semibold text-gray-700 ml-1">E-posta Adresi</label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Mail className="text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                            </div>
                             <input
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                placeholder="ornek@mail.com"
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all font-medium"
+                                placeholder="ornek@neobank.com.tr"
                                 required
+                                disabled={successMsg !== null}
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 ml-1">Şifre</label>
-                        <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <label className="text-sm font-semibold text-gray-700 ml-1">Şifre</label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Lock className="text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                            </div>
                             <input
                                 type="password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all font-medium tracking-widest"
                                 placeholder="••••••••"
                                 required
                                 minLength="6"
+                                disabled={successMsg !== null}
                             />
                         </div>
                     </div>
 
-                    <Button type="submit" className="w-full h-12 text-base font-semibold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 mt-6" disabled={loading}>
-                        {loading ? 'İşleniyor...' : <>Kayıt Ol <ArrowRight size={20} /></>}
+                    <Button 
+                        type="submit" 
+                        className="w-full h-14 mt-4 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.98]" 
+                        disabled={loading || successMsg !== null}
+                    >
+                        {loading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span>İşleniyor...</span>
+                            </div>
+                        ) : (
+                            <>NeoBank'a Katılın <ArrowRight size={20} /></>
+                        )}
                     </Button>
                 </form>
             </div>

@@ -20,7 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -33,15 +33,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS Ayarlarını Aktifleştirdik
-                .csrf(csrf -> csrf.disable()) // Token tabanlı olduğu için CSRF kapalı
+                .cors(cors -> cors.disable())
+                .csrf(csrf -> csrf.disable()) 
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Bu yollara herkes erişebilir (Giriş, Kayıt, Actuator, Swagger)
-                        .requestMatchers("/auth/**", "/users", "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
-                        // 2. Diğer tüm istekler Token (Kimlik Doğrulama) gerektirir
+                        .requestMatchers("/auth/**", "/users/**", "/notifications/**", "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // Oturum yönetimi yok (Stateless), her istekte Token bakılacak
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -49,25 +46,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        // Spesifik IP'leri geri ekliyoruz çünkü allowCredentials(true) ile "*" kullanımı tarayıcılarda güvenlik (CORS policy blocked) hatası verir.
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173", 
-            "http://100.108.175.65:5173", 
-            "http://100.123.65.55:5173",
-            "http://100.78.223.71:5173"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        configuration.setAllowCredentials(true); // Token transferi için Credentials mutlaka TRUE olmalıdır
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
     @Bean

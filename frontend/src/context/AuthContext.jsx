@@ -28,13 +28,17 @@ export const AuthProvider = ({ children }) => {
     const login = async (credentials) => {
         try {
             // Gerçek API'ye istek atıyoruz (Gateway üzerinden Payment Service'e)
-            const response = await axios.post('http://100.108.175.65:8080/auth/login', credentials);
+            // CORS problemlerini en aza indirmek için config içine headers ekliyoruz
+            const response = await axios.post('http://100.108.175.65:8080/auth/login', credentials, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             
             if (response.data && response.data.token) {
                 const token = response.data.token;
                 
-                // Basit bir JWT parse işlemi (Header.Payload.Signature)
-                // Token'ın payload kısmını (ortadaki Base64 string'i) çözüyoruz
+                // JWT payload kısmını (Base64) çözüp içindeki 'role' bilgisini alıyoruz
                 const base64Url = token.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                 const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
@@ -43,18 +47,11 @@ export const AuthProvider = ({ children }) => {
 
                 const payload = JSON.parse(jsonPayload);
                 
-                // Backend'den gelen token'ın içinde rol var mı diye bakıyoruz
-                // Normalde Spring Security yetkileri 'authorities' veya 'roles' içinde liste olarak gönderir
-                // Eğer Backend token'a rolü eklemediyse, geçici olarak emaile göre simüle edebiliriz
-                // Ama şu an Backend'e rol eklediğimiz için bu rolü kullanacağız
-                
-                let userRole = USER_ROLES.CUSTOMER; // Varsayılan
-                
-                // E-postaya göre kesin yönetim (Gerçek token'da rol yoksa diye geçici çözüm)
-                if (credentials.email.includes('admin@')) userRole = USER_ROLES.ADMIN;
-                else if (credentials.email.includes('manager@')) userRole = USER_ROLES.MANAGER;
-                else if (credentials.email.includes('employee@')) userRole = USER_ROLES.EMPLOYEE;
+                // Backend'den (JwtService'den) gelen rolü okuyoruz.
+                // Eğer okuyamazsak (eski token vs.) CUSTOMER varsayıyoruz
+                let userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
 
+                // Giriş başarılı, context'i güncelle
                 setAuthState({
                     isAuthenticated: true,
                     user: { name: payload.sub || 'Kullanıcı', email: credentials.email },
@@ -62,16 +59,22 @@ export const AuthProvider = ({ children }) => {
                     token: token
                 });
                 
+                // Axios'a varsayılan header olarak JWT token'ı ekle. 
+                // Bundan sonra atılacak tüm api isteklerinde bu token otomatik gidecek!
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                
                 return userRole;
             }
         } catch (error) {
             console.error("Login Error:", error);
-            throw error; // Login.jsx'teki try-catch bloğunun hatayı yakalaması için fırlatıyoruz
+            throw error; 
         }
     };
 
     const logout = () => {
         setAuthState(initialAuthState);
+        // Çıkış yapıldığında axios header'ından token'ı sil
+        delete axios.defaults.headers.common['Authorization'];
     };
 
     return (

@@ -9,6 +9,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -19,17 +22,18 @@ public class AuthenticationService {
 
     // Kayıt ol ve hemen Token üret
     public AuthResponse register(UserCreateRequest request) {
-        // Mevcut UserService mantığını kullanarak kullanıcıyı oluşturuyoruz
         User user = userService.createUser(request);
 
-        // Kullanıcı oluştu, şimdi ona bir token verelim
-        String token = jwtService.generateToken(user.getEmail());
+        // JWT içine rol bilgisini de ekliyoruz
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole());
+
+        String token = jwtService.generateToken(extraClaims, user.getEmail());
         return new AuthResponse(token);
     }
 
     // Giriş yap ve Token üret
     public AuthResponse authenticate(AuthRequest request) {
-        // Spring Security'nin kendi mekanizmasıyla şifre kontrolü yapıyoruz
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -37,8 +41,15 @@ public class AuthenticationService {
                 )
         );
 
-        // Eğer buraya geldiysek şifre doğrudur. Token üretip dönelim.
-        String token = jwtService.generateToken(request.getEmail());
+        // Şifre doğrulandıktan sonra veritabanından kullanıcının rolünü al
+        // AuthenticationManager sadece email/şifre doğrular, rol bilgisini JWT'ye basmak için UserService'den okuyoruz
+        User user = userService.getUserByEmail(request.getEmail());
+
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole());
+
+        // Rolü de JWT'nin içine gömerek token üret
+        String token = jwtService.generateToken(extraClaims, user.getEmail());
         return new AuthResponse(token);
     }
 }
