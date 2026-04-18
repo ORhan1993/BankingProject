@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { Search, Edit, Trash2, UserPlus, Filter, Shield, User, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import api from '../../api/axiosInstance'; // Merkezi API istemcimizi import ediyoruz
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -15,9 +15,8 @@ const Users = () => {
         setLoading(true);
         setError(null);
         try {
-            // AuthContext içerisinde tanımladığımız axios.defaults.headers sayesinde
-            // Token otomatik olarak bu isteğin içine eklenecek
-            const response = await axios.get('http://100.108.175.65:8080/users');
+            // Yeni 'api' instance'ı ile istek atıyoruz
+            const response = await api.get('/users');
             setUsers(response.data);
         } catch (err) {
             console.error("Kullanıcıları çekerken hata:", err);
@@ -36,7 +35,8 @@ const Users = () => {
         if (!window.confirm(`${name} isimli kullanıcıyı silmek istediğinize emin misiniz?`)) return;
         
         try {
-            await axios.delete(`http://100.108.175.65:8080/users/${id}`);
+            // Yeni 'api' instance'ı ile istek atıyoruz
+            await api.delete(`/users/${id}`);
             alert("Kullanıcı başarıyla silindi.");
             setUsers(users.filter(u => u.id !== id)); // Listeyi arayüzde güncelle
         } catch (err) {

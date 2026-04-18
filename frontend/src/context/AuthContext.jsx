@@ -1,6 +1,6 @@
 // frontend/src/contexts/AuthContext.jsx
-import React, { createContext, useState, useContext } from 'react';
-import axios from 'axios';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../api/axiosInstance'; // Merkezi API istemcimizi import ediyoruz
 
 // Kullanıcı Rolleri
 export const USER_ROLES = {
@@ -25,43 +25,51 @@ const initialAuthState = {
 export const AuthProvider = ({ children }) => {
     const [authState, setAuthState] = useState(initialAuthState);
 
+    // Sayfa yenilendiğinde token'ı kontrol et
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Token'ı doğrula ve kullanıcı bilgilerini ayarla
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                // Token'ın süresi geçmiş mi kontrol et
+                if (payload.exp * 1000 > Date.now()) {
+                    const userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
+                    setAuthState({
+                        isAuthenticated: true,
+                        user: { name: payload.sub, email: payload.sub },
+                        role: userRole,
+                        token: token
+                    });
+                } else {
+                    // Süresi geçmiş token'ı temizle
+                    localStorage.removeItem('token');
+                }
+            } catch (error) {
+                console.error("Invalid token found in localStorage", error);
+                localStorage.removeItem('token');
+            }
+        }
+    }, []);
+
     const login = async (credentials) => {
         try {
-            // Gerçek API'ye istek atıyoruz (Gateway üzerinden Payment Service'e)
-            // CORS problemlerini en aza indirmek için config içine headers ekliyoruz
-            const response = await axios.post('http://100.108.175.65:8080/auth/login', credentials, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            // Yeni 'api' instance'ı ile istek atıyoruz
+            const response = await api.post('/auth/login', credentials);
             
             if (response.data && response.data.token) {
                 const token = response.data.token;
-                
-                // JWT payload kısmını (Base64) çözüp içindeki 'role' bilgisini alıyoruz
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
+                localStorage.setItem('token', token); // Token'ı localStorage'a kaydet
 
-                const payload = JSON.parse(jsonPayload);
-                
-                // Backend'den (JwtService'den) gelen rolü okuyoruz.
-                // Eğer okuyamazsak (eski token vs.) CUSTOMER varsayıyoruz
-                let userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
 
-                // Giriş başarılı, context'i güncelle
                 setAuthState({
                     isAuthenticated: true,
-                    user: { name: payload.sub || 'Kullanıcı', email: credentials.email },
+                    user: { name: payload.sub, email: credentials.email },
                     role: userRole,
                     token: token
                 });
-                
-                // Axios'a varsayılan header olarak JWT token'ı ekle. 
-                // Bundan sonra atılacak tüm api isteklerinde bu token otomatik gidecek!
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 
                 return userRole;
             }
@@ -72,9 +80,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        localStorage.removeItem('token'); // Token'ı localStorage'dan sil
         setAuthState(initialAuthState);
-        // Çıkış yapıldığında axios header'ından token'ı sil
-        delete axios.defaults.headers.common['Authorization'];
     };
 
     return (

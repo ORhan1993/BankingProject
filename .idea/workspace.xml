@@ -4,10 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="004c934c-233a-42d8-9268-e58013442c7b" name="Changes" comment="This major commit establishes the foundational architecture for the NeoBank platform, transitioning from individual components to a fully integrated, containerized microservices ecosystem.&#10;&#10;It introduces a complete CI/CD-ready setup using Docker Compose, robust authentication and authorization flows, and the initial phase of corporate communication and user management modules.&#10;&#10;Key Changes:&#10;&#10;feat(auth):&#10;- Implemented end-to-end JWT-based authentication and registration flow.&#10;- Added `role` attribute to User entity for RBAC (Role-Based Access Control).&#10;- JWT payload now includes the user role for frontend-driven routing.&#10;- Created separate, styled registration pages for Customers and Staff.&#10;&#10;feat(devops):&#10;- Dockerized all microservices (`discovery-server`, `api-gateway`, `paymentService`) and the React frontend.&#10;- Integrated essential services (`mysql`, `rabbitmq`, `mailhog`, `phpmyadmin`) into `docker-compose.yml`.&#10;- Configured Tailscale IP addresses for stable, location-independent network access.&#10;&#10;feat(admin):&#10;- Developed a dynamic &quot;User Management&quot; dashboard to list and delete real users from the database.&#10;- Created a &quot;System Mailbox&quot; interface within the admin panel to view emails captured by MailHog.&#10;&#10;feat(backend):&#10;- Established a `Notification` entity and service to log all outgoing communications.&#10;- Integrated an automated &quot;Welcome Email&quot; upon successful user registration.&#10;- Implemented a programmatic `CommandLineRunner` to reliably initialize test users, resolving previous `data.sql` hash issues.&#10;&#10;refactor(frontend):&#10;- Completely redesigned the Login page with a modern, corporate aesthetic and a unified login form.&#10;- Refactored `AuthContext` to connect to the live backend API instead of using mock data.&#10;&#10;fix(cors):&#10;- Resolved persistent CORS (Cross-Origin Resource Sharing) errors by centralizing CORS management at the API Gateway and disabling conflicting configurations in the backend services.">
+    <list default="true" id="004c934c-233a-42d8-9268-e58013442c7b" name="Changes" comment="user login problem fixed">
+      <change afterPath="$PROJECT_DIR$/frontend/src/api/axiosInstance.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/config/DataInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/config/DataInitializer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/paymentService/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/context/AuthContext.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/context/AuthContext.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/admin/Users.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/admin/Users.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/auth/RegisterAdmin.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/auth/RegisterAdmin.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/auth/RegisterCustomer.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/auth/RegisterCustomer.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/vite.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/paymentService/src/main/java/org/bozgeyik/paymentservice/config/SecurityConfig.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -138,7 +144,7 @@
       <workItem from="1776031908402" duration="305000" />
       <workItem from="1776362716290" duration="627000" />
       <workItem from="1776505602649" duration="3829000" />
-      <workItem from="1776523317585" duration="2342000" />
+      <workItem from="1776523317585" duration="5133000" />
     </task>
     <task id="LOCAL-00001" summary="sunucu client ilişkisi kuruldu test edilecek">
       <option name="closed" value="true" />
@@ -180,7 +186,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775947062733</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="user login problem fixed">
+      <option name="closed" value="true" />
+      <created>1776525997511</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1776525997512</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -192,6 +206,7 @@
     <MESSAGE value="read me ve workspace eklendi" />
     <MESSAGE value="workspace güncellendi" />
     <MESSAGE value="This major commit establishes the foundational architecture for the NeoBank platform, transitioning from individual components to a fully integrated, containerized microservices ecosystem.&#10;&#10;It introduces a complete CI/CD-ready setup using Docker Compose, robust authentication and authorization flows, and the initial phase of corporate communication and user management modules.&#10;&#10;Key Changes:&#10;&#10;feat(auth):&#10;- Implemented end-to-end JWT-based authentication and registration flow.&#10;- Added `role` attribute to User entity for RBAC (Role-Based Access Control).&#10;- JWT payload now includes the user role for frontend-driven routing.&#10;- Created separate, styled registration pages for Customers and Staff.&#10;&#10;feat(devops):&#10;- Dockerized all microservices (`discovery-server`, `api-gateway`, `paymentService`) and the React frontend.&#10;- Integrated essential services (`mysql`, `rabbitmq`, `mailhog`, `phpmyadmin`) into `docker-compose.yml`.&#10;- Configured Tailscale IP addresses for stable, location-independent network access.&#10;&#10;feat(admin):&#10;- Developed a dynamic &quot;User Management&quot; dashboard to list and delete real users from the database.&#10;- Created a &quot;System Mailbox&quot; interface within the admin panel to view emails captured by MailHog.&#10;&#10;feat(backend):&#10;- Established a `Notification` entity and service to log all outgoing communications.&#10;- Integrated an automated &quot;Welcome Email&quot; upon successful user registration.&#10;- Implemented a programmatic `CommandLineRunner` to reliably initialize test users, resolving previous `data.sql` hash issues.&#10;&#10;refactor(frontend):&#10;- Completely redesigned the Login page with a modern, corporate aesthetic and a unified login form.&#10;- Refactored `AuthContext` to connect to the live backend API instead of using mock data.&#10;&#10;fix(cors):&#10;- Resolved persistent CORS (Cross-Origin Resource Sharing) errors by centralizing CORS management at the API Gateway and disabling conflicting configurations in the backend services." />
-    <option name="LAST_COMMIT_MESSAGE" value="This major commit establishes the foundational architecture for the NeoBank platform, transitioning from individual components to a fully integrated, containerized microservices ecosystem.&#10;&#10;It introduces a complete CI/CD-ready setup using Docker Compose, robust authentication and authorization flows, and the initial phase of corporate communication and user management modules.&#10;&#10;Key Changes:&#10;&#10;feat(auth):&#10;- Implemented end-to-end JWT-based authentication and registration flow.&#10;- Added `role` attribute to User entity for RBAC (Role-Based Access Control).&#10;- JWT payload now includes the user role for frontend-driven routing.&#10;- Created separate, styled registration pages for Customers and Staff.&#10;&#10;feat(devops):&#10;- Dockerized all microservices (`discovery-server`, `api-gateway`, `paymentService`) and the React frontend.&#10;- Integrated essential services (`mysql`, `rabbitmq`, `mailhog`, `phpmyadmin`) into `docker-compose.yml`.&#10;- Configured Tailscale IP addresses for stable, location-independent network access.&#10;&#10;feat(admin):&#10;- Developed a dynamic &quot;User Management&quot; dashboard to list and delete real users from the database.&#10;- Created a &quot;System Mailbox&quot; interface within the admin panel to view emails captured by MailHog.&#10;&#10;feat(backend):&#10;- Established a `Notification` entity and service to log all outgoing communications.&#10;- Integrated an automated &quot;Welcome Email&quot; upon successful user registration.&#10;- Implemented a programmatic `CommandLineRunner` to reliably initialize test users, resolving previous `data.sql` hash issues.&#10;&#10;refactor(frontend):&#10;- Completely redesigned the Login page with a modern, corporate aesthetic and a unified login form.&#10;- Refactored `AuthContext` to connect to the live backend API instead of using mock data.&#10;&#10;fix(cors):&#10;- Resolved persistent CORS (Cross-Origin Resource Sharing) errors by centralizing CORS management at the API Gateway and disabling conflicting configurations in the backend services." />
+    <MESSAGE value="user login problem fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="user login problem fixed" />
   </component>
 </project>

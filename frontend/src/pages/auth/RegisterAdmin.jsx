@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { User, Mail, Lock, ArrowRight, ArrowLeft, Building2 } from 'lucide-react';
-import axios from 'axios';
+import api from '../../api/axiosInstance'; // Merkezi API istemcimizi import ediyoruz
 
 const RegisterAdmin = () => {
     const [formData, setFormData] = useState({
@@ -23,14 +23,12 @@ const RegisterAdmin = () => {
         setSuccessMsg(null);
         
         try {
-            // API Gateway üzerinden Backend'e istek atıyoruz
-            const response = await axios.post('http://100.108.175.65:8080/auth/register', formData);
+            // Yeni 'api' instance'ı ile istek atıyoruz
+            const response = await api.post('/auth/register', formData);
             
             if (response.data && response.data.token) {
-                // Kayıt başarılı, kullanıcıya bilgi ver
                 setSuccessMsg("Personel hesabı başarıyla oluşturuldu! Lütfen kayıtlı e-postanız ile giriş yapın.");
                 
-                // Formu temizle
                 setFormData({
                     name: '',
                     email: '',
@@ -38,14 +36,14 @@ const RegisterAdmin = () => {
                     role: 'EMPLOYEE'
                 });
                 
-                // 3 saniye sonra login ekranına at
                 setTimeout(() => {
                     navigate('/login');
                 }, 3000);
             }
         } catch (err) {
             console.error("Kayıt hatası:", err);
-            setError(err.response?.data?.message || err.response?.data || "Kayıt işlemi sırasında bir hata oluştu.");
+            const errorMsg = err.response?.data?.message || err.response?.data || err.message || "Kayıt işlemi sırasında bir hata oluştu.";
+            setError(typeof errorMsg === 'string' ? errorMsg : "Sunucu ile iletişim kurulamadı.");
         } finally {
             setLoading(false);
         }

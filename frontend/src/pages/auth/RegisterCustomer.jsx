@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { User, Mail, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
-import axios from 'axios';
+import api from '../../api/axiosInstance'; // Merkezi API istemcimizi import ediyoruz
 
 const RegisterCustomer = () => {
     const [formData, setFormData] = useState({
@@ -23,13 +23,8 @@ const RegisterCustomer = () => {
         setSuccessMsg(null);
         
         try {
-            // CORS hatasını aşmak ve Headers'ı net belirtmek için yapılandırma ekliyoruz
-            const response = await axios.post('http://100.108.175.65:8080/auth/register', formData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
+            // Yeni 'api' instance'ı ile istek atıyoruz
+            const response = await api.post('/auth/register', formData);
             
             if (response.data && response.data.token) {
                 setSuccessMsg("Müşteri hesabı başarıyla oluşturuldu! Lütfen kayıtlı e-postanız ile giriş yapın.");
@@ -47,9 +42,8 @@ const RegisterCustomer = () => {
             }
         } catch (err) {
             console.error("Kayıt hatası:", err);
-            // Sunucudan mesaj dönmezse veya ağ hatası olursa daha net bir mesaj göster
             const errorMsg = err.response?.data?.message || err.response?.data || err.message || "Kayıt işlemi sırasında bir hata oluştu.";
-            setError(typeof errorMsg === 'string' ? errorMsg : "Sunucu ile iletişim kurulamadı. (CORS veya Ağ Hatası)");
+            setError(typeof errorMsg === 'string' ? errorMsg : "Sunucu ile iletişim kurulamadı.");
         } finally {
             setLoading(false);
         }
