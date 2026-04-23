@@ -2,35 +2,39 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
-import { Lock, Mail, ArrowRight, ShieldCheck, Fingerprint, Building2, Users } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, Fingerprint, Building2, Users, AlertCircle } from 'lucide-react';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setTimeout(async () => {
-            try {
-                // Backend'e tek bir istek atılır, rolü backend belirler ve yönlendirir.
-                const role = await login({ email, password });
-                const dashboardMap = {
-                    'CUSTOMER': '/customer/dashboard',
-                    'ADMIN': '/admin/dashboard',
-                    'MANAGER': '/manager/dashboard',
-                    'EMPLOYEE': '/employee/dashboard'
-                };
-                navigate(dashboardMap[role] || '/');
-            } catch (error) {
-                alert("Giriş başarısız! E-posta veya şifre hatalı.");
-            } finally {
-                setLoading(false);
-            }
-        }, 800);
+        setError(null);
+
+        try {
+            const role = await login({ email, password });
+            
+            // Başarılı giriş durumunda yönlendirme yap
+            const dashboardMap = {
+                'CUSTOMER': '/customer/dashboard',
+                'ADMIN': '/admin/dashboard',
+                'MANAGER': '/manager/dashboard',
+                'EMPLOYEE': '/employee/dashboard'
+            };
+            navigate(dashboardMap[role] || '/');
+
+        } catch (err) {
+            console.error("Login Submit Error:", err);
+            setError(err.response?.data?.message || "E-posta veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -83,6 +87,15 @@ const Login = () => {
 
                     <div className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            
+                            {/* Hata Mesajı Alanı */}
+                            {error && (
+                                <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 flex items-center gap-3">
+                                    <AlertCircle size={20} />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+
                             <div className="space-y-2.5">
                                 <label className="text-sm font-semibold text-gray-700 ml-1">E-posta Adresi</label>
                                 <div className="relative group">
@@ -139,7 +152,7 @@ const Login = () => {
                         </form>
                     </div>
 
-                    {/* Alt Yönlendirme (Ayırt Edici Kayıt Alanı) */}
+                    {/* Alt Yönlendirme */}
                     <div className="mt-10 grid grid-cols-2 gap-4">
                         <Link to="/register/customer" className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-gray-200 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all group cursor-pointer">
                             <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">

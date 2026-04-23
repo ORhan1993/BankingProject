@@ -5,22 +5,16 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: '0.0.0.0', // Tüm ağ arayüzlerinden erişime izin ver
+    host: true, // Docker içinde dışarıdan erişim için gerekli
     port: 5173,
     strictPort: true,
-    hmr: {
-      host: 'localhost',
-      protocol: 'ws',
-    },
     watch: {
-      usePolling: true,
+      usePolling: true
     },
-    // YENİ EKLENEN KISIM: Vite'ye hangi adreslere hizmet verebileceğini söylüyoruz
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      'softwarengineer.taild894da.ts.net', // Tailscale MagicDNS adresi
-      '100.108.175.65', // Sunucunun Tailscale IP'si
-    ],
+    // WebSocket hatasını çözen HMR (Hot Module Replacement) ayarı
+    hmr: {
+      host: 'softwarengineer.taild894da.ts.net', // Tarayıcının bağlandığı dış adres
+      clientPort: 5173 // Tarayıcının bağlandığı port
+    }
   }
 })

@@ -29,10 +29,8 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            // Token'ı doğrula ve kullanıcı bilgilerini ayarla
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                // Token'ın süresi geçmiş mi kontrol et
                 if (payload.exp * 1000 > Date.now()) {
                     const userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
                     setAuthState({
@@ -41,8 +39,9 @@ export const AuthProvider = ({ children }) => {
                         role: userRole,
                         token: token
                     });
+                    // Sayfa yenilendiğinde de token'ı axios header'ına ekle
+                    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 } else {
-                    // Süresi geçmiş token'ı temizle
                     localStorage.removeItem('token');
                 }
             } catch (error) {
@@ -54,12 +53,11 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            // Yeni 'api' instance'ı ile istek atıyoruz
             const response = await api.post('/auth/login', credentials);
             
             if (response.data && response.data.token) {
                 const token = response.data.token;
-                localStorage.setItem('token', token); // Token'ı localStorage'a kaydet
+                localStorage.setItem('token', token); 
 
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
@@ -71,16 +69,22 @@ export const AuthProvider = ({ children }) => {
                     token: token
                 });
                 
+                // Axios'a varsayılan header olarak JWT token'ı ekle
+                api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                
                 return userRole;
             }
         } catch (error) {
             console.error("Login Error:", error);
+            // ÇÖZÜM: Hatayı yakalayıp tekrar fırlatıyoruz ki Login.jsx bunu yakalasın
             throw error; 
         }
     };
 
     const logout = () => {
-        localStorage.removeItem('token'); // Token'ı localStorage'dan sil
+        localStorage.removeItem('token'); 
+        // Axios header'ından token'ı sil
+        delete api.defaults.headers.common['Authorization'];
         setAuthState(initialAuthState);
     };
 

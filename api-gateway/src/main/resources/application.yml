@@ -8,20 +8,22 @@ spring:
     gateway:
       globalcors:
         cors-configurations:
-          '[/**]':
+          '[/**]': # Gelen tüm isteklere bu kuralları uygula
             allowedOrigins: 
               - "http://localhost:5173"
               - "http://127.0.0.1:5173"
               - "http://softwarengineer.taild894da.ts.net:5173"
+              - "http://100.108.175.65:5173"
+              - "http://100.123.65.55:5173"
+              - "http://100.78.223.71:5173"
             allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-              - PATCH
-              - HEAD
-            allowedHeaders: "*"
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "OPTIONS"
+              - "PATCH"
+            allowedHeaders: "*" # Gelen tüm başlıklara izin ver
             allowCredentials: true
       routes:
         - id: payment-service-route
@@ -38,5 +40,5 @@ eureka:
     service-url:
       defaultZone: http://discovery-server:8761/eureka/
   instance:
-    hostname: softwarengineer.taild894da.ts.net # Eureka'ya bu isimle kaydol
+    hostname: softwarengineer.taild894da.ts.net
     prefer-ip-address: false
