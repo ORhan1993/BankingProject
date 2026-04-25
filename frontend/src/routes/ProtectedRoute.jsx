@@ -1,31 +1,26 @@
-// frontend/src/routes/ProtectedRoute.jsx
 import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Navigate, Outlet } from 'react-router-dom';
 
-/**
- * Rol tabanlı erişim kontrolü sağlayan bileşen.
- * @param {string[]} allowedRoles - Bu rotaya erişebilecek roller.
- */
-const ProtectedRoute = ({ allowedRoles }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
     const { isAuthenticated, role } = useAuth();
+    const location = useLocation();
+
+    console.log(`[ProtectedRoute] Path: ${location.pathname}, isAuthenticated: ${isAuthenticated}, User Role: ${role}, Allowed Roles: ${allowedRoles}`);
 
     if (!isAuthenticated) {
-        // Oturum açılmamışsa, giriş sayfasına yönlendir
+        console.log(`[ProtectedRoute] Kullanıcı giriş yapmamış. Login'e yönlendiriliyor.`);
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (!allowedRoles.includes(role)) {
+        console.log(`[ProtectedRoute] Yetkisiz erişim! Kullanıcının rolü (${role}) izin verilen roller (${allowedRoles}) arasında değil. Login'e yönlendiriliyor.`);
+        // İsteğe bağlı: Yetkisiz erişim için özel bir sayfaya yönlendirilebilir.
         return <Navigate to="/login" replace />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(role)) {
-        // Rol yetersizse, erişim reddedildi sayfasına veya dashboard'a yönlendir
-        console.warn(`Erişim Engellendi: Rol (${role}) yetersiz.`);
-
-        // Yönlendirmeyi kullanıcının mevcut rollerine göre yap (örnek olarak ana sayfaya)
-        const redirectPath = `/${role.toLowerCase()}/dashboard`;
-        return <Navigate to={redirectPath} replace />;
-    }
-
-    // Yetkili ise alt rotaları render et (Layout'un kendisini veya doğrudan sayfayı)
-    return <Outlet />;
+    console.log(`[ProtectedRoute] Erişim izni verildi.`);
+    return children;
 };
 
 export default ProtectedRoute;

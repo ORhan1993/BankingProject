@@ -1,11 +1,9 @@
 // frontend/src/contexts/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../api/axiosInstance'; // Merkezi API istemcimizi import ediyoruz
+import api from '../api/axiosInstance';
 
-// Kullanıcı Rolleri
 export const USER_ROLES = {
     ADMIN: 'ADMIN',
-    GENERAL_MANAGER: 'GENERAL_MANAGER',
     MANAGER: 'MANAGER',
     EMPLOYEE: 'EMPLOYEE',
     CUSTOMER: 'CUSTOMER',
@@ -14,7 +12,6 @@ export const USER_ROLES = {
 
 const AuthContext = createContext();
 
-// Başlangıç Durumu
 const initialAuthState = {
     isAuthenticated: false,
     user: null,
@@ -25,33 +22,37 @@ const initialAuthState = {
 export const AuthProvider = ({ children }) => {
     const [authState, setAuthState] = useState(initialAuthState);
 
-    // Sayfa yenilendiğinde token'ı kontrol et
     useEffect(() => {
+        console.log("[AuthContext] Sayfa yüklendi, token kontrol ediliyor...");
         const token = localStorage.getItem('token');
         if (token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp * 1000 > Date.now()) {
                     const userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
+                    console.log("[AuthContext] Geçerli token bulundu. Kullanıcı:", payload.sub, "Rol:", userRole);
                     setAuthState({
                         isAuthenticated: true,
                         user: { name: payload.sub, email: payload.sub },
                         role: userRole,
                         token: token
                     });
-                    // Sayfa yenilendiğinde de token'ı axios header'ına ekle
                     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 } else {
+                    console.log("[AuthContext] Süresi geçmiş token bulundu, siliniyor.");
                     localStorage.removeItem('token');
                 }
             } catch (error) {
-                console.error("Invalid token found in localStorage", error);
+                console.error("[AuthContext] Geçersiz token, siliniyor.", error);
                 localStorage.removeItem('token');
             }
+        } else {
+            console.log("[AuthContext] Token bulunamadı. Misafir olarak devam ediliyor.");
         }
     }, []);
 
     const login = async (credentials) => {
+        console.log("[AuthContext] Login fonksiyonu çağrıldı. E-posta:", credentials.email);
         try {
             const response = await api.post('/auth/login', credentials);
             
@@ -61,7 +62,9 @@ export const AuthProvider = ({ children }) => {
 
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const userRole = payload.role ? payload.role.toUpperCase() : USER_ROLES.CUSTOMER;
+                console.log("[AuthContext] API'den token alındı. Kullanıcı:", payload.sub, "Rol:", userRole);
 
+                console.log("[AuthContext] State güncelleniyor...");
                 setAuthState({
                     isAuthenticated: true,
                     user: { name: payload.sub, email: credentials.email },
@@ -69,21 +72,19 @@ export const AuthProvider = ({ children }) => {
                     token: token
                 });
                 
-                // Axios'a varsayılan header olarak JWT token'ı ekle
                 api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                
+                console.log("[AuthContext] State güncellendi. Yeni rol:", userRole);
                 return userRole;
             }
         } catch (error) {
-            console.error("Login Error:", error);
-            // ÇÖZÜM: Hatayı yakalayıp tekrar fırlatıyoruz ki Login.jsx bunu yakalasın
+            console.error("[AuthContext] Login API hatası:", error);
             throw error; 
         }
     };
 
     const logout = () => {
+        console.log("[AuthContext] Logout çağrıldı.");
         localStorage.removeItem('token'); 
-        // Axios header'ından token'ı sil
         delete api.defaults.headers.common['Authorization'];
         setAuthState(initialAuthState);
     };

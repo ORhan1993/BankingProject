@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootApplication
@@ -26,39 +25,34 @@ public class PaymentServiceApplication {
         SpringApplication.run(PaymentServiceApplication.class, args);
     }
 
-    // UYGULAMA BAŞLARKEN TEST KULLANICILARINI OLUŞTURAN VEYA GÜNCELLEYEN GARANTİLİ METOT
     @Bean
     CommandLineRunner initDatabase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            log.info("Veritabanı başlangıç kontrolü ve senkronizasyonu...");
+            log.info("Veritabanı başlangıç kontrolü ve test kullanıcı senkronizasyonu...");
 
-            // Admin kullanıcısını bul veya oluştur/güncelle
-            User admin = userRepository.findByEmail("admin@neobank.com.tr")
-                    .orElse(new User()); // Bulamazsan yeni bir tane yarat
-
+            // Yönetici Hesabı
+            User admin = userRepository.findByEmail("admin@neobank.com.tr").orElse(new User());
             admin.setName("NeoBank Yönetici");
             admin.setEmail("admin@neobank.com.tr");
-            admin.setPassword(passwordEncoder.encode("123")); // Şifreyi her seferinde doğru hash ile ayarla
+            admin.setPassword(passwordEncoder.encode("123456")); // Yeni şifre
             admin.setRole("ADMIN");
             if (admin.getCustomerId() == null) {
                 admin.setCustomerId("cus_admin_" + UUID.randomUUID().toString().substring(0, 8));
             }
             userRepository.save(admin);
-            log.info("Test Admin kullanıcısı senkronize edildi.");
+            log.info("Test YÖNETİCİ kullanıcısı senkronize edildi.");
 
-            // Müşteri kullanıcısını bul veya oluştur/güncelle
-            User customer = userRepository.findByEmail("ornek@neobank.com.tr")
-                    .orElse(new User()); // Bulamazsan yeni bir tane yarat
-
-            customer.setName("NeoBank Müşteri");
-            customer.setEmail("ornek@neobank.com.tr");
-            customer.setPassword(passwordEncoder.encode("123")); // Şifreyi her seferinde doğru hash ile ayarla
+            // Müşteri Hesabı
+            User customer = userRepository.findByEmail("test@neobank.com.tr").orElse(new User());
+            customer.setName("Test Customer");
+            customer.setEmail("test@neobank.com.tr");
+            customer.setPassword(passwordEncoder.encode("123456")); // Yeni şifre
             customer.setRole("CUSTOMER");
             if (customer.getCustomerId() == null) {
                 customer.setCustomerId("cus_customer_" + UUID.randomUUID().toString().substring(0, 8));
             }
             userRepository.save(customer);
-            log.info("Test Müşteri kullanıcısı senkronize edildi.");
+            log.info("Test MÜŞTERİ kullanıcısı senkronize edildi.");
         };
     }
 }

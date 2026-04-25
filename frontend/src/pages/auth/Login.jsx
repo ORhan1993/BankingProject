@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom'; // Navigate'i import ediyoruz
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
 import { Lock, Mail, ArrowRight, ShieldCheck, Fingerprint, Building2, Users, AlertCircle } from 'lucide-react';
@@ -9,8 +9,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { login } = useAuth();
-    const navigate = useNavigate();
+    const { login, isAuthenticated } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,24 +17,21 @@ const Login = () => {
         setError(null);
 
         try {
-            const role = await login({ email, password });
-            
-            // Başarılı giriş durumunda yönlendirme yap
-            const dashboardMap = {
-                'CUSTOMER': '/customer/dashboard',
-                'ADMIN': '/admin/dashboard',
-                'MANAGER': '/manager/dashboard',
-                'EMPLOYEE': '/employee/dashboard'
-            };
-            navigate(dashboardMap[role] || '/');
-
+            // Sadece login fonksiyonunu çağırıyoruz. Yönlendirme işini AppRouter yapacak.
+            await login({ email, password });
         } catch (err) {
-            console.error("Login Submit Error:", err);
-            setError(err.response?.data?.message || "E-posta veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.");
+            setError(err.response?.data?.message || "E-posta veya şifre hatalı.");
         } finally {
             setLoading(false);
         }
     };
+
+    // Eğer kullanıcı zaten giriş yapmışsa, bu sayfayı hiç gösterme, doğrudan yönlendir.
+    if (isAuthenticated) {
+        // AppRouter'daki mantık zaten yönlendireceği için burası bir ek güvenlik katmanı.
+        // Genellikle kullanıcı /login adresine manuel gitmeye çalıştığında devreye girer.
+        return <Navigate to="/" replace />;
+    }
 
     return (
         <div className="min-h-screen flex bg-[#f8fafc]">
@@ -88,7 +84,6 @@ const Login = () => {
                     <div className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             
-                            {/* Hata Mesajı Alanı */}
                             {error && (
                                 <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 flex items-center gap-3">
                                     <AlertCircle size={20} />

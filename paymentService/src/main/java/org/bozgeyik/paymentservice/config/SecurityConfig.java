@@ -27,8 +27,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.disable()) // CORS KONTROLÜNÜ TAMAMEN DEVRE DIŞI BIRAK (YÖNETİM SADECE GATEWAY'DE)
-                .csrf(csrf -> csrf.disable()) 
+                // KESİN ÇÖZÜM: Backend'deki CORS kontrolünü tamamen devre dışı bırakıyoruz.
+                // Tüm CORS yönetimi sadece ve sadece API Gateway'de yapılacaktır.
+                .cors(cors -> cors.disable())
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/users/**", "/notifications/**", "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                         .anyRequest().authenticated()

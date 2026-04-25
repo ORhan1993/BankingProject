@@ -1,5 +1,6 @@
 package org.bozgeyik.paymentservice.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bozgeyik.paymentservice.dto.AuthRequest;
 import org.bozgeyik.paymentservice.dto.AuthResponse;
@@ -18,13 +19,11 @@ public class AuthController {
 
     private final AuthenticationService authService;
 
-    // Kayıt Endpoint'i: /auth/register
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody UserCreateRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody UserCreateRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
-    // Giriş Endpoint'i: /auth/login
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest request) {
         return ResponseEntity.ok(authService.authenticate(request));

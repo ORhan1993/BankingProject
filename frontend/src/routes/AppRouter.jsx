@@ -21,7 +21,7 @@ import LoanApply from '../pages/customer/LoanApply';
 import AdminDashboard from '../pages/admin/Dashboard';
 import UsersPage from '../pages/admin/Users';
 import Logs from '../pages/admin/Logs';
-import LocalMailbox from '../pages/admin/LocalMailbox'; // Yeni eklendi
+import LocalMailbox from '../pages/admin/LocalMailbox';
 
 import ManagerDashboard from '../pages/Manager/Dashboard';
 import Approvals from '../pages/Manager/Approvals';
@@ -55,7 +55,7 @@ const AdminLayout = () => {
     const menuItems = [
         { path: 'dashboard', name: 'Yönetim Paneli', icon: <LayoutDashboard size={20}/> },
         { path: 'users', name: 'Kullanıcı Yönetimi', icon: <Users size={20}/> },
-        { path: 'mailbox', name: 'Sistem Mailleri', icon: <Mail size={20}/> }, // Yeni eklendi
+        { path: 'mailbox', name: 'Sistem Mailleri', icon: <Mail size={20}/> },
         { path: 'logs', name: 'Sistem Logları', icon: <Activity size={20}/> },
         { path: 'settings', name: 'Ayarlar', icon: <SettingsIcon size={20}/> },
     ];
@@ -105,14 +105,17 @@ const EmployeeLayout = () => {
 
 const AppRouter = () => {
     const { isAuthenticated, role } = useAuth();
+    console.log(`[AppRouter] Rendered. isAuthenticated: ${isAuthenticated}, Role: ${role}`);
 
     return (
         <BrowserRouter>
             <Routes>
+                {/* YÖNLENDİRME MERKEZİ: Kullanıcı giriş yapmışsa ve GUEST değilse doğru panele at. */}
+                <Route path="/" element={isAuthenticated && role && role !== 'GUEST' ? <Navigate to={`/${role.toLowerCase()}/dashboard`} replace /> : <Navigate to="/login" replace />} />
+                
                 <Route path="/login" element={<Login />} />
                 <Route path="/register/customer" element={<RegisterCustomer />} />
                 <Route path="/register/admin" element={<RegisterAdmin />} />
-                <Route path="/" element={isAuthenticated ? <Navigate to={`/${role?.toLowerCase()}/dashboard`} replace /> : <Navigate to="/login" replace />} />
 
                 <Route path="/customer" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><CustomerLayout /></ProtectedRoute>}>
                     <Route path="dashboard" element={<CustomerDashboard />} />
@@ -126,7 +129,7 @@ const AppRouter = () => {
                 <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN', 'GENERAL_MANAGER']}><AdminLayout /></ProtectedRoute>}>
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="users" element={<UsersPage />} />
-                    <Route path="mailbox" element={<LocalMailbox />} /> {/* Yeni Eklendi */}
+                    <Route path="mailbox" element={<LocalMailbox />} />
                     <Route path="logs" element={<Logs />} />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route index element={<Navigate to="dashboard" replace />} />
