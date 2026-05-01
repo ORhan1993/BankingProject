@@ -17,7 +17,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8761
-      - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false}}}
+      # Kendini bir istemci gibi kaydetmesini engelliyoruz:
+      - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false,"serviceUrl":{"defaultZone":"http://localhost:8761/eureka/"}}}}
 
   # ----------------------------
   # 2. API Gateway
@@ -29,16 +30,13 @@ services:
       - "8080:8080"
     depends_on:
       discovery-server:
-        condition: service_healthy
+        condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
       - SPRING_APPLICATION_NAME=api-gateway
-      - EUREKA_URI=http://discovery-server:8761/eureka/
-      # CORS Ayarları
-      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[0]_ALLOWEDORIGINS=*
-      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[0]_ALLOWEDMETHODS=GET,POST,PUT,DELETE,OPTIONS
-      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[0]_ALLOWEDHEADERS=*
+      # Tailscale Sunucu IP adresi ile Eureka'ya kaydolması için:
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"100.108.175.65","preferIpAddress":true,"ip-address":"100.108.175.65"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
   # 3. Payment Service (Ana Uygulama)
@@ -47,21 +45,25 @@ services:
     container_name: payment-service
     build: ./paymentService
     restart: on-failure
+    ports:
+      - "8081:8081"
     depends_on:
       mysqldb:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       discovery-server:
-        condition: service_healthy
+        condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=payment-service
+      - SERVER_PORT=8081
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=1
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - EUREKA_URI=http://discovery-server:8761/eureka/
+      # Tailscale Sunucu IP adresi ile Eureka'ya kaydolması için:
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"100.108.175.65","preferIpAddress":true,"ip-address":"100.108.175.65"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
   # 4. MySQL Veritabanı
@@ -98,16 +100,41 @@ services:
       retries: 5
 
   # ----------------------------
-  # 6. Frontend (React)
+  # 6. Frontend (React/Vite)
   # ----------------------------
   frontend:
-    container_name: banking-frontend
+    container_name: frontend
     build: ./frontend
     ports:
-      - "3000:80"
+      - "5173:5173" # Vite'nin varsayılan geliştirme portu
     depends_on:
       - api-gateway
-    restart: always # Konteyner kapanırsa otomatik yeniden başlat
+
+  # ----------------------------
+  # 7. Local Mail Server (MailHog)
+  # ----------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025" # Backend'in mail göndereceği SMTP portu
+      - "8025:8025" # Gelen mailleri görebileceğiniz Web Arayüzü portu
+
+  # ----------------------------
+  # 8. phpMyAdmin (Veritabanı Arayüzü)
+  # ----------------------------
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    ports:
+      - "8082:80" # Tarayıcıdan erişeceğiniz port
+    environment:
+      - PMA_HOST=mysqldb # MySQL servisinin container adı
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=1
+    depends_on:
+      - mysqldb
 
 volumes:
   db_data:

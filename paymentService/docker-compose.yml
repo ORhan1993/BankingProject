@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # 1. Discovery Server (Önce bu kalkmalı)
+  discovery-server:
+    image: orhan1993/discovery-server:latest # (Build alıp imaj oluşturduğunu varsayıyoruz)
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  # 2. API Gateway (Giriş Kapısı)
+  api-gateway:
+    image: orhan1993/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8080:8080" # Sadece bu port dışarı açık!
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka
+    depends_on:
+      - discovery-server
+
+  # 3. Payment Service (Bizim Servis)
+  payment-service:
+    build: . # Mevcut klasörden build alır
+    container_name: payment-service
+    restart: on-failure
+    # ports: - "8080:8080" # ARTIK PORTU DIŞARI AÇMIYORUZ! Gateway üzerinden erişilecek.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+
+  # 4. Veritabanı
+  mysqldb:
+    image: mysql:8.0
+    container_name: payment-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: payment_db
+      MYSQL_ROOT_PASSWORD: 1
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # 5. RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: payment-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:

@@ -6,30 +6,39 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]': # Gelen tüm isteklere bu kuralları uygula
+            allowedOrigins: 
+              - "http://localhost:5173"
+              - "http://127.0.0.1:5173"
+              - "http://softwarengineer.taild894da.ts.net:5173"
+              - "http://100.108.175.65:5173"
+              - "http://100.123.65.55:5173"
+              - "http://100.78.223.71:5173"
+            allowedMethods:
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "OPTIONS"
+              - "PATCH"
+            allowedHeaders: "*" # Gelen tüm başlıklara izin ver
+            allowCredentials: true
+      routes:
+        - id: payment-service-route
+          uri: lb://payment-service
+          predicates:
+            - Path=/auth/**, /users/**, /notifications/**, /payments/**, /wallets/**, /api/v1/payment/**
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-      routes:
-        - id: payment-service
-          uri: lb://payment-service
-          predicates:
-            - Path=/payment/**
-          filters:
-            - StripPrefix=1
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
 
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+      defaultZone: http://discovery-server:8761/eureka/
+  instance:
+    hostname: softwarengineer.taild894da.ts.net
+    prefer-ip-address: false
