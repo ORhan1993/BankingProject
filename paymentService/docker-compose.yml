@@ -1,74 +1,100 @@
 version: '3.8'
 
 services:
-  # 1. Discovery Server (Önce bu kalkmalı)
+  # ----------------------------
+  # 1. Discovery Server (Eureka)
+  # ----------------------------
   discovery-server:
-    image: orhan1993/discovery-server:latest # (Build alıp imaj oluşturduğunu varsayıyoruz)
     container_name: discovery-server
+    build: ./discovery-server
     ports:
-      - "8761:8761"
+      - "${HOST_IP}:8761:8761" # Sadece .env içindeki IP erişebilir
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8761
+      - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false,"serviceUrl":{"defaultZone":"http://localhost:8761/eureka/"}}}}
 
-  # 2. API Gateway (Giriş Kapısı)
+  # ----------------------------
+  # 2. API Gateway
+  # ----------------------------
   api-gateway:
-    image: orhan1993/api-gateway:latest
     container_name: api-gateway
+    build: ./api-gateway
     ports:
-      - "8080:8080" # Sadece bu port dışarı açık!
+      - "${HOST_IP}:8080:8080" # Sadece .env içindeki IP erişebilir
+    depends_on:
+      discovery-server:
+        condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka
-    depends_on:
-      - discovery-server
+      - SERVER_PORT=8080
+      - SPRING_APPLICATION_NAME=api-gateway
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"${HOST_IP}","preferIpAddress":true,"ip-address":"${HOST_IP}"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
-  # 3. Payment Service (Bizim Servis)
+  # ----------------------------
+  # 3. Payment Service (Ana Uygulama)
+  # ----------------------------
   payment-service:
-    build: . # Mevcut klasörden build alır
     container_name: payment-service
+    build: ./paymentService
     restart: on-failure
-    # ports: - "8080:8080" # ARTIK PORTU DIŞARI AÇMIYORUZ! Gateway üzerinden erişilecek.
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 1
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
-      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "${HOST_IP}:8081:8081" # Sadece .env içindeki IP erişebilir
     depends_on:
-      mysqldb:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       discovery-server:
         condition: service_started
-
-  # 4. Veritabanı
-  mysqldb:
-    image: mysql:8.0
-    container_name: payment-mysql
-    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Linux sunucularda host veritabanına erişim için
     environment:
-      MYSQL_DATABASE: payment_db
-      MYSQL_ROOT_PASSWORD: 1
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=payment-service
+      - SERVER_PORT=8081
+      # Kendi bilgisayarınızdaki aktif MySQL'e bağlanır:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"${HOST_IP}","preferIpAddress":true,"ip-address":"${HOST_IP}"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
-  # 5. RabbitMQ
+  # ----------------------------
+  # 4. RabbitMQ
+  # ----------------------------
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: payment-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5672:5672" # Servislerin kendi arasında haberleşeceği iç port
+      - "${HOST_IP}:15672:15672" # Yönetim paneli arayüzü (Sadece izinli IP erişebilir)
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
       timeout: 5s
       retries: 5
 
-volumes:
-  db_data:
+  # ----------------------------
+  # 5. Frontend (React/Vite)
+  # ----------------------------
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - "${HOST_IP}:5173:5173" # Sadece .env içindeki IP erişebilir
+    depends_on:
+      - api-gateway
+
+  # ----------------------------
+  # 6. Local Mail Server (MailHog)
+  # ----------------------------
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025" # Backend'in mail göndereceği iç SMTP portu
+      - "${HOST_IP}:8025:8025" # Gelen mailleri okuyacağınız web arayüzü
