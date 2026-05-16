@@ -97,4 +97,4 @@ services:
     container_name: mailhog
     ports:
       - "1025:1025" # Backend'in mail göndereceği iç SMTP portu
-      - "${HOST_IP}:8025:8025" # Gelen mailleri okuyacağınız web arayüzü
+      - "${HOST_IP}:8025:8025" # Gelen mailleri okuyacağınız web arayüzümüz
