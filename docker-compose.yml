@@ -8,7 +8,7 @@ services:
     container_name: discovery-server
     build: ./discovery-server
     ports:
-      - "8761:8761"
+      - "${HOST_IP}:8761:8761"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 10s
@@ -17,7 +17,6 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8761
-      # Kendini bir istemci gibi kaydetmesini engelliyoruz:
       - SPRING_APPLICATION_JSON={"eureka":{"client":{"register-with-eureka":false,"fetch-registry":false,"serviceUrl":{"defaultZone":"http://localhost:8761/eureka/"}}}}
 
   # ----------------------------
@@ -27,7 +26,7 @@ services:
     container_name: api-gateway
     build: ./api-gateway
     ports:
-      - "8080:8080"
+      - "${HOST_IP}:8080:8080"
     depends_on:
       discovery-server:
         condition: service_started
@@ -35,8 +34,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT=8080
       - SPRING_APPLICATION_NAME=api-gateway
-      # Tailscale Sunucu IP adresi ile Eureka'ya kaydolması için:
-      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"100.108.175.65","preferIpAddress":true,"ip-address":"100.108.175.65"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"${HOST_IP}","preferIpAddress":true,"ip-address":"${HOST_IP}"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
   # 3. Payment Service (Ana Uygulama)
@@ -46,53 +44,33 @@ services:
     build: ./paymentService
     restart: on-failure
     ports:
-      - "8081:8081"
+      - "${HOST_IP}:8081:8081"
     depends_on:
-      mysqldb:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       discovery-server:
         condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=payment-service
       - SERVER_PORT=8081
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/payment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=1
       - SPRING_RABBITMQ_HOST=rabbitmq
-      # Tailscale Sunucu IP adresi ile Eureka'ya kaydolması için:
-      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"100.108.175.65","preferIpAddress":true,"ip-address":"100.108.175.65"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
+      - SPRING_APPLICATION_JSON={"eureka":{"instance":{"hostname":"${HOST_IP}","preferIpAddress":true,"ip-address":"${HOST_IP}"},"client":{"serviceUrl":{"defaultZone":"http://discovery-server:8761/eureka/"}}}}
 
   # ----------------------------
-  # 4. MySQL Veritabanı
-  # ----------------------------
-  mysqldb:
-    image: mysql:8.0
-    container_name: payment-mysql
-    restart: always
-    environment:
-      - MYSQL_DATABASE=payment_db
-      - MYSQL_ROOT_PASSWORD=1
-    ports:
-      - "3307:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
-
-  # ----------------------------
-  # 5. RabbitMQ
+  # 4. RabbitMQ
   # ----------------------------
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: payment-rabbitmq
     ports:
       - "5672:5672"
-      - "15672:15672"
+      - "${HOST_IP}:15672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
@@ -100,41 +78,22 @@ services:
       retries: 5
 
   # ----------------------------
-  # 6. Frontend (React/Vite)
+  # 5. Frontend (React/Vite)
   # ----------------------------
   frontend:
     container_name: frontend
     build: ./frontend
     ports:
-      - "5173:5173" # Vite'nin varsayılan geliştirme portu
+      - "${HOST_IP}:5173:5173"
     depends_on:
       - api-gateway
 
   # ----------------------------
-  # 7. Local Mail Server (MailHog)
+  # 6. Local Mail Server (MailHog)
   # ----------------------------
   mailhog:
     image: mailhog/mailhog:latest
     container_name: mailhog
     ports:
-      - "1025:1025" # Backend'in mail göndereceği SMTP portu
-      - "8025:8025" # Gelen mailleri görebileceğiniz Web Arayüzü portu
-
-  # ----------------------------
-  # 8. phpMyAdmin (Veritabanı Arayüzü)
-  # ----------------------------
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: phpmyadmin
-    ports:
-      - "8082:80" # Tarayıcıdan erişeceğiniz port
-    environment:
-      - PMA_HOST=mysqldb # MySQL servisinin container adı
-      - PMA_PORT=3306
-      - PMA_USER=root
-      - PMA_PASSWORD=1
-    depends_on:
-      - mysqldb
-
-volumes:
-  db_data:
+      - "1025:1025"
+      - "${HOST_IP}:8025:8025"
